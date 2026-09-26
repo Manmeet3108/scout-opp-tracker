@@ -1,0 +1,6 @@
+{
+  "name": "Scout — Opportunity Tracker & Scanner",
+  "description": "Private opportunity tracker and automated scanner for mentored students: fellowships, grants, ambassador programs, open source, hackathons, and competitions.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

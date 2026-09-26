@@ -1,0 +1,28 @@
+services:
+  # Scout Opportunity Tracker & Automated Scanner Web Service
+  - type: web
+    name: scout-opportunity-tracker
+    runtime: node
+    plan: free
+    region: oregon # or frankfurt, singapore, ohio
+    buildCommand: npm install && npm run build
+    startCommand: npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000
+      - key: GEMINI_API_KEY
+        sync: false # Set in Render Dashboard -> Environment
+      - key: DATABASE_URL
+        sync: false # Optional: attach Render Postgres or Supabase connection string
+    healthCheckPath: /api/health
+    autoDeploy: true
+
+# Optional: To attach a free Render PostgreSQL database instead of JSON storage,
+# uncomment the database section below:
+# databases:
+#   - name: scout-postgres
+#     plan: free
+#     databaseName: scout
+#     user: scout_admin
