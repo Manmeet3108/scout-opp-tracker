@@ -1,4 +1,5 @@
 import React from 'react';
+import { FileText, Clock, Users, Database, ArrowRight } from 'lucide-react';
 import { Opportunity } from '../types/opportunity';
 
 interface StatsBannerProps {
@@ -20,57 +21,116 @@ export const StatsBanner: React.FC<StatsBannerProps> = ({
   const openCount = opportunities.filter((o) => o.status === 'Open' || o.status === 'Rolling').length;
   const closingSoonCount = opportunities.filter((o) => o.status === 'Closing Soon').length;
   const indianEligibleCount = opportunities.filter((o) => o.indian_eligibility === 'Eligible').length;
-  const paidCount = opportunities.filter((o) => o.stipend_type === 'Paid / Stipend' || o.stipend_type === 'Equity-free Grant').length;
+  const paidCount = opportunities.filter(
+    (o) => o.stipend_type === 'Paid / Stipend' || o.stipend_type === 'Equity-free Grant'
+  ).length;
 
   return (
-    <div className="border-b border-slate-800 bg-slate-900/50 py-3">
+    <div className="bg-[#060913] pt-6 pb-3">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-5 text-xs">
+        {/* Heading & Subtitle */}
+        <div className="mb-5">
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-white font-display">
+            Opportunity Scout
+          </h1>
+          <p className="mt-1 text-sm text-slate-400">
+            Find and track verified opportunities for your students.
+          </p>
+        </div>
+
+        {/* 5 Stat Cards in a Single Horizontal Row */}
+        <div className="grid grid-cols-5 gap-3">
+          {/* Card 1: Total Opportunities */}
           <button
             onClick={onResetFilters}
-            className="flex flex-col rounded-lg border border-slate-800/80 bg-slate-900/80 p-2.5 text-left transition hover:border-slate-700"
+            className="flex min-w-0 items-start gap-3 rounded-2xl border border-slate-800/90 bg-slate-900/50 p-3.5 text-left transition hover:border-slate-700"
           >
-            <span className="text-slate-400">Total Opportunities</span>
-            <span className="mt-1 text-lg font-semibold text-white tabular-nums font-mono">
-              {total}
-            </span>
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-slate-800/80 text-slate-400">
+              <FileText className="h-4 w-4" />
+            </div>
+            <div className="flex min-w-0 flex-col">
+              <span className="truncate text-xs font-medium text-slate-300">Total Opportunities</span>
+              <span className="mt-1 text-2xl font-bold text-white tabular-nums font-mono leading-none">
+                {total}
+              </span>
+            </div>
           </button>
 
-          <div className="flex flex-col rounded-lg border border-slate-800/80 bg-slate-900/80 p-2.5 text-left">
-            <span className="text-emerald-400">Active & Open</span>
-            <span className="mt-1 text-lg font-semibold text-white tabular-nums font-mono">
-              {openCount}
-            </span>
-          </div>
+          {/* Card 2: Active & Open */}
+          <button
+            onClick={onResetFilters}
+            className="flex min-w-0 items-start gap-3 rounded-2xl border border-emerald-500/25 bg-emerald-950/15 p-3.5 text-left transition hover:border-emerald-500/40"
+          >
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-emerald-500/10">
+              <span className="h-3.5 w-3.5 rounded-full bg-emerald-400" />
+            </div>
+            <div className="flex min-w-0 flex-col">
+              <span className="truncate text-xs font-medium text-emerald-400">Active &amp; Open</span>
+              <span className="mt-1 text-2xl font-bold text-white tabular-nums font-mono leading-none">
+                {openCount}
+              </span>
+              <span className="mt-1 truncate text-[11px] text-slate-400">
+                of {total} opportunities
+              </span>
+            </div>
+          </button>
 
+          {/* Card 3: Closing Soon */}
           <button
             onClick={onFilterClosingSoon}
-            className="flex flex-col rounded-lg border border-amber-900/40 bg-amber-950/20 p-2.5 text-left transition hover:border-amber-700/60"
+            className="flex min-w-0 items-start gap-3 rounded-2xl border border-amber-500/35 bg-amber-950/20 p-3.5 text-left transition hover:border-amber-500/60"
           >
-            <span className="text-amber-400">Closing Soon (&le;14d)</span>
-            <span className="mt-1 text-lg font-semibold text-amber-300 tabular-nums font-mono">
-              {closingSoonCount}
-            </span>
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-amber-500/15 text-amber-400">
+              <Clock className="h-4 w-4" />
+            </div>
+            <div className="flex min-w-0 flex-col">
+              <span className="truncate text-xs font-medium text-amber-400">Closing Soon</span>
+              <span className="mt-1 text-2xl font-bold text-amber-300 tabular-nums font-mono leading-none">
+                {closingSoonCount}
+              </span>
+              <span className="mt-1 flex items-center gap-1 truncate text-[11px] font-medium text-amber-400">
+                <span className="truncate">within 14 days</span>
+                <ArrowRight className="h-3 w-3 shrink-0" />
+              </span>
+            </div>
           </button>
 
+          {/* Card 4: Indian Students Eligible */}
           <button
             onClick={onFilterIndianEligible}
-            className="flex flex-col rounded-lg border border-slate-800/80 bg-slate-900/80 p-2.5 text-left transition hover:border-slate-700"
+            className="flex min-w-0 items-start gap-3 rounded-2xl border border-slate-800/90 bg-slate-900/50 p-3.5 text-left transition hover:border-slate-700"
           >
-            <span className="text-indigo-300">Indian Students Eligible</span>
-            <span className="mt-1 text-lg font-semibold text-white tabular-nums font-mono">
-              {indianEligibleCount}
-            </span>
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-indigo-500/15 text-indigo-400">
+              <Users className="h-4 w-4" />
+            </div>
+            <div className="flex min-w-0 flex-col">
+              <span className="truncate text-xs font-medium text-slate-300">Indian Students Eligible</span>
+              <span className="mt-1 text-2xl font-bold text-white tabular-nums font-mono leading-none">
+                {indianEligibleCount}
+              </span>
+              <span className="mt-1 truncate text-[11px] text-slate-400">
+                eligible opportunities
+              </span>
+            </div>
           </button>
 
+          {/* Card 5: Paid Stipends & Grants */}
           <button
             onClick={onFilterPaid}
-            className="col-span-2 sm:col-span-1 flex flex-col rounded-lg border border-slate-800/80 bg-slate-900/80 p-2.5 text-left transition hover:border-slate-700"
+            className="flex min-w-0 items-start gap-3 rounded-2xl border border-slate-800/90 bg-slate-900/50 p-3.5 text-left transition hover:border-slate-700"
           >
-            <span className="text-cyan-400">Paid Stipends & Grants</span>
-            <span className="mt-1 text-lg font-semibold text-white tabular-nums font-mono">
-              {paidCount}
-            </span>
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-cyan-500/15 text-cyan-400">
+              <Database className="h-4 w-4" />
+            </div>
+            <div className="flex min-w-0 flex-col">
+              <span className="truncate text-xs font-medium text-cyan-400">Paid Stipends &amp; Grants</span>
+              <span className="mt-1 text-2xl font-bold text-white tabular-nums font-mono leading-none">
+                {paidCount}
+              </span>
+              <span className="mt-1 truncate text-[11px] text-slate-400">
+                with stipends or grants
+              </span>
+            </div>
           </button>
         </div>
       </div>

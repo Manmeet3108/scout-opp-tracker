@@ -178,7 +178,7 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 font-sans flex flex-col">
+    <div className="min-h-screen bg-[#060913] text-slate-100 font-sans flex flex-col">
       {/* Top Bar Contract (Wordmark — Nav links — Primary actions) */}
       <Header
         onOpenAddModal={() => {
@@ -190,36 +190,7 @@ export default function App() {
         onExportExcel={handleExportExcel}
       />
 
-      {/* Hero / Context Title */}
-      <div className="border-b border-slate-800 bg-gradient-to-b from-slate-900/80 to-slate-950 px-4 py-6 sm:px-6 lg:px-8">
-        <div className="mx-auto max-w-7xl flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <div>
-            <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-white font-display">
-              Mentorship Opportunity Tracker & Scanner
-            </h1>
-            <p className="mt-1 text-xs text-slate-400 max-w-2xl leading-relaxed">
-              Find, track, and log verified fellowships, grants, student ambassador posts, open-source programs, hackathons, and competitions across all 21 mentorship criteria.
-            </p>
-          </div>
-
-          <div className="flex items-center gap-2 text-xs">
-            <button
-              onClick={() => setIsScannerModalOpen(true)}
-              className="flex items-center gap-1.5 rounded-lg border border-slate-700 bg-slate-900/90 px-3 py-1.5 text-slate-200 hover:bg-slate-800 transition"
-            >
-              <span>Automated Daily Scan</span>
-            </button>
-            <button
-              onClick={() => setIsRenderModalOpen(true)}
-              className="flex items-center gap-1.5 rounded-lg border border-indigo-900/50 bg-indigo-950/40 px-3 py-1.5 text-indigo-300 hover:bg-indigo-900/50 transition font-medium"
-            >
-              <span>Render Hosting Guide</span>
-            </button>
-          </div>
-        </div>
-      </div>
-
-      {/* Quantitative Stats Banner */}
+      {/* Hero Title + Quantitative Stats Banner */}
       <StatsBanner
         opportunities={opportunities}
         onFilterClosingSoon={() => handleFilterChange({ status: 'Closing Soon' })}
@@ -260,13 +231,10 @@ export default function App() {
       </main>
 
       {/* Footer */}
-      <footer className="border-t border-slate-900 bg-slate-950 py-6 text-center text-xs text-slate-400">
+      <footer className="border-t border-slate-900 bg-[#060913] py-6 text-center text-xs text-slate-400">
         <div className="mx-auto max-w-7xl px-4 flex flex-col sm:flex-row items-center justify-between gap-3">
-          <p>Scout Mentorship Tracker — Built for standalone deployment on Render.</p>
+          <p>Scout Mentorship Tracker</p>
           <div className="flex items-center gap-4 text-slate-400">
-            <button onClick={() => setIsRenderModalOpen(true)} className="hover:text-slate-300">
-              Render Config
-            </button>
             <button onClick={handleExportExcel} className="hover:text-slate-300">
               Export to Excel
             </button>
