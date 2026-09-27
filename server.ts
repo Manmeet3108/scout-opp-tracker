@@ -14,7 +14,7 @@ import {
   updateDeadlineStatuses, 
   getScanLogs 
 } from './server/db';
-import { runOpportunityScan, parseOpportunityWithGemini } from './server/scanner';
+import { runOpportunityScan, parseOpportunityWithGemini, syncExistingOpportunitiesFromOfficialSites } from './server/scanner';
 
 dotenv.config();
 
@@ -174,7 +174,7 @@ app.post('/api/opportunities/parse-text', async (req: Request, res: Response) =>
   }
 });
 
-// Trigger Opportunity Scan
+// Trigger Opportunity Scan (also syncs existing opportunities from official websites)
 app.post('/api/scan', async (req: Request, res: Response) => {
   try {
     const { categories, autoAdd } = req.body || {};
@@ -182,6 +182,16 @@ app.post('/api/scan', async (req: Request, res: Response) => {
     res.json(result);
   } catch (err: any) {
     res.status(500).json({ error: err.message || 'Scan execution failed' });
+  }
+});
+
+// Sync all existing opportunities directly from their official websites
+app.post('/api/opportunities/sync-official', async (req: Request, res: Response) => {
+  try {
+    const result = await syncExistingOpportunitiesFromOfficialSites();
+    res.json(result);
+  } catch (err: any) {
+    res.status(500).json({ error: err.message || 'Official site sync failed' });
   }
 });
 
@@ -207,16 +217,17 @@ app.post('/api/opportunities/prune', (req: Request, res: Response) => {
 });
 
 // -------------------------------------------------------------
-// NIGHTLY SCAN & MAINTENANCE SCHEDULER
+// NIGHTLY SCAN, DISCOVERY & OFFICIAL WEBSITE SYNC SCHEDULER
 // -------------------------------------------------------------
 // Run every 24 hours (86,400,000 ms) in background
 const TWENTY_FOUR_HOURS = 24 * 60 * 60 * 1000;
-setInterval(() => {
-  console.log('[Scout Scheduler] Running nightly maintenance: checking deadlines and pruning...');
+setInterval(async () => {
+  console.log('[Scout Scheduler] Running nightly discovery scan & official website sync...');
   try {
-    const dlResult = updateDeadlineStatuses();
-    const prResult = pruneExpiredOpportunities(30);
-    console.log(`[Scout Scheduler] Nightly complete. Deadlines updated: ${dlResult.updatedCount}, Pruned: ${prResult.prunedCount}`);
+    const scanResult = await runOpportunityScan({ autoAdd: true });
+    console.log(
+      `[Scout Scheduler] Nightly complete. Verified: ${scanResult.stats.verified} (${scanResult.stats.updated} updated), New Added: ${scanResult.stats.added}, Pruned: ${scanResult.stats.pruned}`
+    );
   } catch (err) {
     console.error('[Scout Scheduler] Error in nightly maintenance:', err);
   }

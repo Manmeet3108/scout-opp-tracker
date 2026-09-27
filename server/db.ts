@@ -206,6 +206,8 @@ export function pruneExpiredOpportunities(daysThreshold: number = 30): {
   const now = new Date();
 
   const active = items.filter((opp) => {
+    // Keep flagship recurring annual programs in the tracker so mentors can track their official 2026 cycle dates
+    if (opp.id.startsWith('scout-opp-')) return true;
     if (opp.deadline === 'Rolling' || !opp.deadline) return true;
     const deadlineDate = new Date(opp.deadline);
     if (isNaN(deadlineDate.getTime())) return true;

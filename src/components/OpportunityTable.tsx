@@ -463,7 +463,7 @@ export const OpportunityTable: React.FC<OpportunityTableProps> = ({
                                 {deadlineDays === null
                                   ? 'Rolling'
                                   : deadlineDays < 0
-                                  ? 'Closed'
+                                  ? '2026 Cycle Closed'
                                   : `${deadlineDays} days left`}
                               </span>
                             </div>

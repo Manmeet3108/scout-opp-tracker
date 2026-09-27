@@ -81,7 +81,10 @@ export const ScannerModal: React.FC<ScannerModalProps> = ({
       });
 
       setDiscoveredItems(result.discovered);
-      setScanMessage(`Scan completed! Discovered ${result.discovered.length} verified opportunities.`);
+      setScanMessage(
+        `Live scan complete! Verified ${result.stats.verified} existing programs against their official websites and discovered ${result.discovered.length} opportunities.`
+      );
+      onOpportunityAdded();
       loadLogs();
     } catch (err: any) {
       setScanMessage(`Scan error: ${err.message || 'Check server connection'}`);
