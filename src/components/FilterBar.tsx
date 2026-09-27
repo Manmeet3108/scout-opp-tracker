@@ -18,9 +18,10 @@ export const FilterBar: React.FC<FilterBarProps> = ({
   return (
     <div className="bg-[#060913] py-2.5">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center gap-2.5">
+        {/* Stacked on Mobile, Single Row on Desktop (lg:) */}
+        <div className="flex flex-col lg:flex-row lg:items-center gap-2.5">
           {/* Search Input */}
-          <div className="relative flex-1 min-w-[200px]">
+          <div className="relative flex-1 min-w-0">
             <Search className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
             <input
               type="text"
@@ -39,15 +40,15 @@ export const FilterBar: React.FC<FilterBarProps> = ({
             )}
           </div>
 
-          {/* 4 Dropdown Filters in Same Single Row */}
-          <div className="flex items-center gap-2 shrink-0">
+          {/* 4 Dropdown Filters: 2x2 Grid on Mobile, Single Row on Desktop */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 lg:flex lg:items-center gap-2 shrink-0">
             {/* Indian Students Filter */}
-            <div className="relative flex items-center">
+            <div className="relative flex items-center min-w-0">
               <Users className="pointer-events-none absolute left-3 h-3.5 w-3.5 text-slate-400" />
               <select
                 value={filters.indianEligibility}
                 onChange={(e) => onFilterChange({ indianEligibility: e.target.value as 'all' | IndianEligibility })}
-                className="appearance-none rounded-xl border border-slate-800/90 bg-slate-900/60 py-2.5 pl-8 pr-7 text-xs font-medium text-slate-200 hover:border-slate-700 focus:border-indigo-500 focus:outline-none cursor-pointer"
+                className="w-full appearance-none rounded-xl border border-slate-800/90 bg-slate-900/60 py-2.5 pl-8 pr-7 text-xs font-medium text-slate-200 hover:border-slate-700 focus:border-indigo-500 focus:outline-none cursor-pointer truncate"
               >
                 <option value="all">Indian Students: All</option>
                 <option value="Eligible">Indian Students: Eligible</option>
@@ -58,12 +59,12 @@ export const FilterBar: React.FC<FilterBarProps> = ({
             </div>
 
             {/* Funding Filter */}
-            <div className="relative flex items-center">
+            <div className="relative flex items-center min-w-0">
               <DollarSign className="pointer-events-none absolute left-3 h-3.5 w-3.5 text-slate-400" />
               <select
                 value={filters.stipendType}
                 onChange={(e) => onFilterChange({ stipendType: e.target.value as 'all' | StipendType })}
-                className="appearance-none rounded-xl border border-slate-800/90 bg-slate-900/60 py-2.5 pl-7 pr-7 text-xs font-medium text-slate-200 hover:border-slate-700 focus:border-indigo-500 focus:outline-none cursor-pointer"
+                className="w-full appearance-none rounded-xl border border-slate-800/90 bg-slate-900/60 py-2.5 pl-7 pr-7 text-xs font-medium text-slate-200 hover:border-slate-700 focus:border-indigo-500 focus:outline-none cursor-pointer truncate"
               >
                 <option value="all">Funding: All</option>
                 <option value="Paid / Stipend">Paid / Stipend</option>
@@ -75,12 +76,12 @@ export const FilterBar: React.FC<FilterBarProps> = ({
             </div>
 
             {/* Status Filter */}
-            <div className="relative flex items-center">
+            <div className="relative flex items-center min-w-0">
               <ListFilter className="pointer-events-none absolute left-3 h-3.5 w-3.5 text-slate-400" />
               <select
                 value={filters.status}
                 onChange={(e) => onFilterChange({ status: e.target.value as 'all' | OpportunityStatus })}
-                className="appearance-none rounded-xl border border-slate-800/90 bg-slate-900/60 py-2.5 pl-8 pr-7 text-xs font-medium text-slate-200 hover:border-slate-700 focus:border-indigo-500 focus:outline-none cursor-pointer"
+                className="w-full appearance-none rounded-xl border border-slate-800/90 bg-slate-900/60 py-2.5 pl-8 pr-7 text-xs font-medium text-slate-200 hover:border-slate-700 focus:border-indigo-500 focus:outline-none cursor-pointer truncate"
               >
                 <option value="all">Status: All</option>
                 <option value="Open">Status: Open</option>
@@ -92,12 +93,12 @@ export const FilterBar: React.FC<FilterBarProps> = ({
             </div>
 
             {/* Sort By */}
-            <div className="relative flex items-center">
+            <div className="relative flex items-center min-w-0">
               <ArrowUpDown className="pointer-events-none absolute left-3 h-3.5 w-3.5 text-slate-400" />
               <select
                 value={filters.sortBy}
                 onChange={(e) => onFilterChange({ sortBy: e.target.value as any })}
-                className="appearance-none rounded-xl border border-slate-800/90 bg-slate-900/60 py-2.5 pl-8 pr-7 text-xs font-medium text-slate-200 hover:border-slate-700 focus:border-indigo-500 focus:outline-none cursor-pointer"
+                className="w-full appearance-none rounded-xl border border-slate-800/90 bg-slate-900/60 py-2.5 pl-8 pr-7 text-xs font-medium text-slate-200 hover:border-slate-700 focus:border-indigo-500 focus:outline-none cursor-pointer truncate"
               >
                 <option value="deadline_asc">Sort: Deadline (Soonest)</option>
                 <option value="deadline_desc">Sort: Deadline (Latest)</option>
