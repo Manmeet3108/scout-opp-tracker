@@ -14,7 +14,15 @@ interface FilterBarProps {
 export const FilterBar: React.FC<FilterBarProps> = ({
   filters,
   onFilterChange,
+  onResetFilters,
 }) => {
+  const hasActiveFilters =
+    filters.search !== '' ||
+    filters.category !== 'all' ||
+    filters.indianEligibility !== 'all' ||
+    filters.stipendType !== 'all' ||
+    filters.status !== 'all';
+
   return (
     <div className="bg-[#060913] py-2.5">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
@@ -47,7 +55,9 @@ export const FilterBar: React.FC<FilterBarProps> = ({
               <Users className="pointer-events-none absolute left-3 h-3.5 w-3.5 text-slate-400" />
               <select
                 value={filters.indianEligibility}
-                onChange={(e) => onFilterChange({ indianEligibility: e.target.value as 'all' | IndianEligibility })}
+                onChange={(e) =>
+                  onFilterChange({ indianEligibility: e.target.value as 'all' | IndianEligibility })
+                }
                 className="w-full appearance-none rounded-xl border border-slate-800/90 bg-slate-900/60 py-2.5 pl-8 pr-7 text-xs font-medium text-slate-200 hover:border-slate-700 focus:border-indigo-500 focus:outline-none cursor-pointer truncate"
               >
                 <option value="all">Indian Students: All</option>
@@ -63,12 +73,17 @@ export const FilterBar: React.FC<FilterBarProps> = ({
               <DollarSign className="pointer-events-none absolute left-3 h-3.5 w-3.5 text-slate-400" />
               <select
                 value={filters.stipendType}
-                onChange={(e) => onFilterChange({ stipendType: e.target.value as 'all' | StipendType })}
+                onChange={(e) =>
+                  onFilterChange({
+                    stipendType: e.target.value as 'all' | 'paid_or_grant' | StipendType,
+                  })
+                }
                 className="w-full appearance-none rounded-xl border border-slate-800/90 bg-slate-900/60 py-2.5 pl-7 pr-7 text-xs font-medium text-slate-200 hover:border-slate-700 focus:border-indigo-500 focus:outline-none cursor-pointer truncate"
               >
                 <option value="all">Funding: All</option>
-                <option value="Paid / Stipend">Paid / Stipend</option>
-                <option value="Equity-free Grant">Equity-free Grant</option>
+                <option value="paid_or_grant">Paid Stipends &amp; Grants</option>
+                <option value="Paid / Stipend">Paid / Stipend Only</option>
+                <option value="Equity-free Grant">Equity-free Grant Only</option>
                 <option value="Prizes / Hardware">Prizes / Hardware</option>
                 <option value="Unpaid / Perks">Unpaid / Perks</option>
               </select>
@@ -80,10 +95,15 @@ export const FilterBar: React.FC<FilterBarProps> = ({
               <ListFilter className="pointer-events-none absolute left-3 h-3.5 w-3.5 text-slate-400" />
               <select
                 value={filters.status}
-                onChange={(e) => onFilterChange({ status: e.target.value as 'all' | OpportunityStatus })}
+                onChange={(e) =>
+                  onFilterChange({
+                    status: e.target.value as 'all' | 'active_open' | OpportunityStatus,
+                  })
+                }
                 className="w-full appearance-none rounded-xl border border-slate-800/90 bg-slate-900/60 py-2.5 pl-8 pr-7 text-xs font-medium text-slate-200 hover:border-slate-700 focus:border-indigo-500 focus:outline-none cursor-pointer truncate"
               >
                 <option value="all">Status: All</option>
+                <option value="active_open">Status: Active &amp; Open</option>
                 <option value="Open">Status: Open</option>
                 <option value="Closing Soon">Status: Closing Soon</option>
                 <option value="Rolling">Status: Rolling</option>
@@ -107,6 +127,16 @@ export const FilterBar: React.FC<FilterBarProps> = ({
               </select>
               <ChevronDown className="pointer-events-none absolute right-2.5 h-3.5 w-3.5 text-slate-400" />
             </div>
+
+            {hasActiveFilters && (
+              <button
+                onClick={onResetFilters}
+                className="col-span-2 sm:col-span-4 lg:col-span-1 inline-flex items-center justify-center gap-1.5 rounded-xl border border-slate-700/80 bg-slate-800/70 px-3 py-2.5 text-xs font-semibold text-slate-200 hover:bg-slate-700 hover:text-white transition whitespace-nowrap"
+              >
+                <X className="h-3.5 w-3.5" />
+                Reset
+              </button>
+            )}
           </div>
         </div>
       </div>

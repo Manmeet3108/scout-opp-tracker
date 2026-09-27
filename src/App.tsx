@@ -69,48 +69,79 @@ export default function App() {
   };
 
   // Filter & Sort Logic
-  const filteredOpportunities = useMemo(() => {
-    return opportunities
-      .filter((opp) => {
-        // Search filter
-        if (filters.search.trim()) {
-          const q = filters.search.toLowerCase();
-          const matchTitle = opp.title.toLowerCase().includes(q);
-          const matchOrganizer = opp.organizer.toLowerCase().includes(q);
-          const matchSubcat = opp.subcategory?.toLowerCase().includes(q);
-          const matchDesc = opp.description.toLowerCase().includes(q);
-          const matchNotes = opp.mentor_notes?.toLowerCase().includes(q);
-          const matchEligibility = opp.eligibility.toLowerCase().includes(q);
-          if (!matchTitle && !matchOrganizer && !matchSubcat && !matchDesc && !matchNotes && !matchEligibility) {
-            return false;
-          }
+  const opportunitiesMatchingOtherFilters = useMemo(() => {
+    return opportunities.filter((opp) => {
+      // Search filter
+      if (filters.search.trim()) {
+        const q = filters.search.toLowerCase();
+        const matchTitle = opp.title.toLowerCase().includes(q);
+        const matchOrganizer = opp.organizer.toLowerCase().includes(q);
+        const matchSubcat = opp.subcategory?.toLowerCase().includes(q);
+        const matchDesc = opp.description.toLowerCase().includes(q);
+        const matchNotes = opp.mentor_notes?.toLowerCase().includes(q);
+        const matchEligibility = opp.eligibility.toLowerCase().includes(q);
+        if (
+          !matchTitle &&
+          !matchOrganizer &&
+          !matchSubcat &&
+          !matchDesc &&
+          !matchNotes &&
+          !matchEligibility
+        ) {
+          return false;
         }
+      }
 
-        // Category filter
+      // Indian student eligibility
+      if (
+        filters.indianEligibility !== 'all' &&
+        opp.indian_eligibility !== filters.indianEligibility
+      ) {
+        return false;
+      }
+
+      // Stipend type
+      if (filters.stipendType === 'paid_or_grant') {
+        if (
+          opp.stipend_type !== 'Paid / Stipend' &&
+          opp.stipend_type !== 'Equity-free Grant'
+        ) {
+          return false;
+        }
+      } else if (
+        filters.stipendType !== 'all' &&
+        opp.stipend_type !== filters.stipendType
+      ) {
+        return false;
+      }
+
+      // Status
+      if (filters.status === 'active_open') {
+        if (opp.status !== 'Open' && opp.status !== 'Rolling') {
+          return false;
+        }
+      } else if (filters.status !== 'all' && opp.status !== filters.status) {
+        return false;
+      }
+
+      // Competitiveness
+      if (
+        filters.competitiveness !== 'all' &&
+        opp.competitiveness !== filters.competitiveness
+      ) {
+        return false;
+      }
+
+      return true;
+    });
+  }, [opportunities, filters]);
+
+  const filteredOpportunities = useMemo(() => {
+    return opportunitiesMatchingOtherFilters
+      .filter((opp) => {
         if (filters.category !== 'all' && opp.category !== filters.category) {
           return false;
         }
-
-        // Indian student eligibility
-        if (filters.indianEligibility !== 'all' && opp.indian_eligibility !== filters.indianEligibility) {
-          return false;
-        }
-
-        // Stipend type
-        if (filters.stipendType !== 'all' && opp.stipend_type !== filters.stipendType) {
-          return false;
-        }
-
-        // Status
-        if (filters.status !== 'all' && opp.status !== filters.status) {
-          return false;
-        }
-
-        // Competitiveness
-        if (filters.competitiveness !== 'all' && opp.competitiveness !== filters.competitiveness) {
-          return false;
-        }
-
         return true;
       })
       .sort((a, b) => {
@@ -133,7 +164,7 @@ export default function App() {
         }
         return 0;
       });
-  }, [opportunities, filters]);
+  }, [opportunitiesMatchingOtherFilters, filters.category, filters.sortBy]);
 
   // Opportunity Actions
   const handleSaveOpportunity = async (data: OpportunityInput, id?: string) => {
@@ -193,17 +224,28 @@ export default function App() {
       {/* Hero Title + Quantitative Stats Banner */}
       <StatsBanner
         opportunities={opportunities}
-        onFilterClosingSoon={() => handleFilterChange({ status: 'Closing Soon' })}
-        onFilterIndianEligible={() => handleFilterChange({ indianEligibility: 'Eligible' })}
-        onFilterPaid={() => handleFilterChange({ stipendType: 'Paid / Stipend' })}
+        onFilterActiveOpen={() =>
+          setFilters({ ...INITIAL_FILTERS, status: 'active_open' })
+        }
+        onFilterClosingSoon={() =>
+          setFilters({ ...INITIAL_FILTERS, status: 'Closing Soon' })
+        }
+        onFilterIndianEligible={() =>
+          setFilters({ ...INITIAL_FILTERS, indianEligibility: 'Eligible' })
+        }
+        onFilterPaid={() =>
+          setFilters({ ...INITIAL_FILTERS, stipendType: 'paid_or_grant' })
+        }
         onResetFilters={handleResetFilters}
       />
 
       {/* 6 Category Segmented Navigation */}
       <CategoryNav
         selectedCategory={filters.category}
-        onSelectCategory={(cat: 'all' | OpportunityCategory) => handleFilterChange({ category: cat })}
-        opportunities={opportunities}
+        onSelectCategory={(cat: 'all' | OpportunityCategory) =>
+          handleFilterChange({ category: cat })
+        }
+        opportunities={opportunitiesMatchingOtherFilters}
       />
 
       {/* Search, Filter & Sort Bar */}

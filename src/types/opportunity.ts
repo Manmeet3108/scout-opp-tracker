@@ -86,8 +86,8 @@ export interface FilterState {
   search: string;
   category: 'all' | OpportunityCategory;
   indianEligibility: 'all' | IndianEligibility;
-  stipendType: 'all' | StipendType;
-  status: 'all' | OpportunityStatus;
+  stipendType: 'all' | 'paid_or_grant' | StipendType;
+  status: 'all' | 'active_open' | OpportunityStatus;
   competitiveness: 'all' | Competitiveness;
   sortBy: 'deadline_asc' | 'deadline_desc' | 'created_desc' | 'stipend_desc' | 'title_asc';
 }

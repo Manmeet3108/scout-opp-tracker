@@ -4,6 +4,7 @@ import { Opportunity } from '../types/opportunity';
 
 interface StatsBannerProps {
   opportunities: Opportunity[];
+  onFilterActiveOpen: () => void;
   onFilterClosingSoon: () => void;
   onFilterIndianEligible: () => void;
   onFilterPaid: () => void;
@@ -12,6 +13,7 @@ interface StatsBannerProps {
 
 export const StatsBanner: React.FC<StatsBannerProps> = ({
   opportunities,
+  onFilterActiveOpen,
   onFilterClosingSoon,
   onFilterIndianEligible,
   onFilterPaid,
@@ -60,7 +62,7 @@ export const StatsBanner: React.FC<StatsBannerProps> = ({
 
           {/* Card 2: Active & Open */}
           <button
-            onClick={onResetFilters}
+            onClick={onFilterActiveOpen}
             className="flex min-w-0 items-start gap-3 rounded-2xl border border-emerald-500/25 bg-emerald-950/15 p-3 sm:p-3.5 text-left transition hover:border-emerald-500/40"
           >
             <div className="flex h-9 w-9 sm:h-10 sm:w-10 shrink-0 items-center justify-center rounded-xl bg-emerald-500/10">
