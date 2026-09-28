@@ -347,18 +347,18 @@ export const OpportunityTable: React.FC<OpportunityTableProps> = ({
             })}
           </div>
 
-          {/* DESKTOP TABLE VIEW (lg:block) — Exact Non-Draggable 7-Column Layout Matching Screenshot */}
+          {/* DESKTOP TABLE VIEW (lg:block) — Exact Non-Draggable 7-Column Layout */}
           <div className="hidden lg:block overflow-hidden rounded-2xl border border-slate-800/90 bg-[#090d1a] shadow-lg">
             <table className="w-full table-fixed text-left text-xs border-collapse">
               <thead>
                 <tr className="border-b border-slate-800/90 bg-[#0c1222] text-slate-300 font-semibold text-xs">
-                  <th className="py-3.5 pl-4 pr-1 w-[36px]"></th>
-                  <th className="py-3.5 px-3 w-[32%]">Opportunity &amp; Organizer</th>
-                  <th className="py-3.5 px-3 w-[17%]">Category &amp; Focus</th>
-                  <th className="py-3.5 px-2 w-[12%]">Indian Eligibility</th>
-                  <th className="py-3.5 px-3 w-[14%]">Stipend &amp; Support</th>
-                  <th className="py-3.5 px-2 w-[11%]">Deadline</th>
-                  <th className="py-3.5 pr-4 pl-2 w-[185px]">Actions</th>
+                  <th className="py-3.5 pl-3 pr-1 w-[3%]"></th>
+                  <th className="py-3.5 px-3 w-[31%]">Opportunity &amp; Organizer</th>
+                  <th className="py-3.5 px-2.5 w-[15%]">Category &amp; Focus</th>
+                  <th className="py-3.5 px-2 w-[11%]">Indian Eligibility</th>
+                  <th className="py-3.5 px-2.5 w-[14%]">Stipend &amp; Support</th>
+                  <th className="py-3.5 px-2 w-[10%]">Deadline</th>
+                  <th className="py-3.5 pr-3 pl-2 w-[16%]">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-800/80">
@@ -378,7 +378,7 @@ export const OpportunityTable: React.FC<OpportunityTableProps> = ({
                         onClick={() => toggleExpand(opp.id)}
                       >
                         {/* Expand Toggle Chevron */}
-                        <td className="py-4 pl-4 pr-1 align-middle text-slate-400">
+                        <td className="py-4 pl-3 pr-1 align-middle text-slate-400">
                           {isExpanded ? (
                             <ChevronUp className="h-4 w-4 text-slate-200" />
                           ) : (
@@ -386,21 +386,33 @@ export const OpportunityTable: React.FC<OpportunityTableProps> = ({
                           )}
                         </td>
 
-                        {/* Column 1: Avatar + Title + Organizer + Geography + Description */}
+                        {/* Column 1: Avatar + Full Title + Organizer + Geography + Description */}
                         <td className="py-4 px-3 align-middle">
                           <div className="flex items-start gap-3">
                             <OrgAvatar organizer={opp.organizer} title={opp.title} />
                             <div className="flex flex-col min-w-0">
-                              <span className="truncate text-sm font-bold text-white group-hover:text-indigo-300 transition-colors leading-snug">
+                              <span
+                                title={opp.title}
+                                className="text-sm font-bold text-white group-hover:text-indigo-300 transition-colors leading-snug break-words"
+                              >
                                 {opp.title}
                               </span>
-                              <span className="truncate text-xs font-medium text-slate-300 mt-0.5">
+                              <span
+                                title={opp.organizer}
+                                className="text-xs font-medium text-slate-300 mt-0.5 break-words"
+                              >
                                 {opp.organizer}
                               </span>
-                              <span className="truncate text-xs text-slate-400 mt-0.5">
+                              <span
+                                title={opp.geography}
+                                className="truncate text-xs text-slate-400 mt-0.5"
+                              >
                                 {opp.geography}
                               </span>
-                              <p className="text-xs text-slate-400 mt-1 line-clamp-1">
+                              <p
+                                title={opp.description}
+                                className="text-xs text-slate-400 mt-1 line-clamp-1"
+                              >
                                 {opp.description}
                               </p>
                             </div>
@@ -408,11 +420,14 @@ export const OpportunityTable: React.FC<OpportunityTableProps> = ({
                         </td>
 
                         {/* Column 2: Category Pill & Focus Subcategory */}
-                        <td className="py-4 px-3 align-middle">
+                        <td className="py-4 px-2.5 align-middle">
                           <div className="flex flex-col items-start min-w-0">
                             <CategoryBadge category={opp.category} />
                             {opp.subcategory && (
-                              <span className="mt-1.5 text-xs text-slate-300 leading-snug line-clamp-2">
+                              <span
+                                title={opp.subcategory}
+                                className="mt-1.5 text-xs text-slate-300 leading-snug line-clamp-2"
+                              >
                                 {opp.subcategory}
                               </span>
                             )}
@@ -425,9 +440,12 @@ export const OpportunityTable: React.FC<OpportunityTableProps> = ({
                         </td>
 
                         {/* Column 4: Stipend & Support */}
-                        <td className="py-4 px-3 align-middle">
+                        <td className="py-4 px-2.5 align-middle">
                           <div className="flex flex-col min-w-0">
-                            <span className="truncate text-sm font-bold text-white leading-snug">
+                            <span
+                              title={opp.stipend}
+                              className="text-sm font-bold text-white leading-snug line-clamp-2 break-words"
+                            >
                               {opp.stipend}
                             </span>
                             <span className="truncate text-xs text-slate-400 mt-1">
@@ -472,7 +490,7 @@ export const OpportunityTable: React.FC<OpportunityTableProps> = ({
 
                         {/* Column 6: Primary Action + Bookmark */}
                         <td
-                          className="py-4 pr-4 pl-2 align-middle"
+                          className="py-4 pr-3 pl-2 align-middle"
                           onClick={(e) => e.stopPropagation()}
                         >
                           <div className="flex items-center gap-1.5">
@@ -481,7 +499,7 @@ export const OpportunityTable: React.FC<OpportunityTableProps> = ({
                               target="_blank"
                               rel="noopener noreferrer"
                               draggable={false}
-                              className="inline-flex items-center gap-1 rounded-xl bg-indigo-600 px-3 py-2 text-xs font-semibold text-white shadow-sm hover:bg-indigo-500 transition-colors whitespace-nowrap"
+                              className="inline-flex items-center gap-1 rounded-xl bg-indigo-600 px-2.5 py-2 text-xs font-semibold text-white shadow-sm hover:bg-indigo-500 transition-colors whitespace-nowrap"
                             >
                               <span>View Opportunity</span>
                               <ArrowRight className="h-3.5 w-3.5 shrink-0" />
@@ -545,6 +563,9 @@ const ExpandedDetails: React.FC<{
           <GraduationCap className="h-4 w-4 text-indigo-400" />
           <span>Overview &amp; Eligibility</span>
         </h4>
+        <p className="text-white font-semibold text-xs mb-1">
+          {opp.title} — <span className="text-indigo-300 font-medium">{opp.organizer}</span>
+        </p>
         <p className="text-slate-300 leading-relaxed text-xs">{opp.description}</p>
       </div>
 
