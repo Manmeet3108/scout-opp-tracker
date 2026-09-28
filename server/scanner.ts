@@ -584,7 +584,7 @@ Respond ONLY with a valid JSON array of ${itemsPerBatch} opportunity objects wit
   }
 
   const discovered = deduplicated.slice(0, requestedCount);
-  const pruneResult = pruneExpiredOpportunities(30);
+  const pruneResult = pruneExpiredOpportunities(15);
 
   let addedCount = 0;
   if (options?.autoAdd && discovered.length > 0) {

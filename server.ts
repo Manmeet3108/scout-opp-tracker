@@ -213,7 +213,7 @@ app.get('/api/scan/logs', (req: Request, res: Response) => {
 // Prune expired opportunities
 app.post('/api/opportunities/prune', (req: Request, res: Response) => {
   try {
-    const days = parseInt(req.body.daysThreshold) || 30;
+    const days = parseInt(req.body.daysThreshold) || 15;
     const result = pruneExpiredOpportunities(days);
     res.json(result);
   } catch (err: any) {

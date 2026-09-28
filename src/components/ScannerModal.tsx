@@ -170,8 +170,8 @@ export const ScannerModal: React.FC<ScannerModalProps> = ({
     setIsPruning(true);
     setPruneResult(null);
     try {
-      const res = await pruneExpiredApi(30);
-      setPruneResult(`Pruning complete: ${res.prunedCount} expired records (>30 days past deadline) safely removed.`);
+      const res = await pruneExpiredApi(15);
+      setPruneResult(`Pruning complete: ${res.prunedCount} expired records (>15 days past deadline) safely removed.`);
       onOpportunityAdded();
       loadLogs();
     } catch (err: any) {
@@ -246,10 +246,10 @@ export const ScannerModal: React.FC<ScannerModalProps> = ({
             onClick={handlePrune}
             disabled={isPruning}
             className="flex items-center gap-1 text-[11px] text-slate-400 hover:text-rose-400 transition"
-            title="Prune opportunities whose deadline passed >30 days ago"
+            title="Prune opportunities whose deadline passed >15 days ago"
           >
             <Trash2 className="h-3 w-3" />
-            <span>{isPruning ? 'Pruning...' : 'Prune Expired (>30d)'}</span>
+            <span>{isPruning ? 'Pruning...' : 'Prune Expired (>15d)'}</span>
           </button>
         </div>
 

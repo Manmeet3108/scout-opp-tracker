@@ -275,7 +275,7 @@ export function updateDeadlineStatuses(): { updatedCount: number } {
   return { updatedCount };
 }
 
-export function pruneExpiredOpportunities(daysThreshold: number = 30): {
+export function pruneExpiredOpportunities(daysThreshold: number = 15): {
   prunedCount: number;
 } {
   const items = getAllOpportunities();

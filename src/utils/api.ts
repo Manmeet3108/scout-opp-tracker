@@ -83,7 +83,7 @@ export async function parseTextWithAiApi(text: string): Promise<Partial<Opportun
   return res.json();
 }
 
-export async function pruneExpiredApi(daysThreshold = 30): Promise<{ prunedCount: number }> {
+export async function pruneExpiredApi(daysThreshold = 15): Promise<{ prunedCount: number }> {
   const res = await fetch('/api/opportunities/prune', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
