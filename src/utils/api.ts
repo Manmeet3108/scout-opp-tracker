@@ -45,10 +45,12 @@ export async function deleteOpportunityApi(id: string): Promise<void> {
 export async function triggerScanApi(options?: {
   categories?: OpportunityCategory[];
   autoAdd?: boolean;
+  targetCount?: number;
+  customQuery?: string;
 }): Promise<{
   scanLog: ScanLog;
   discovered: Partial<OpportunityInput>[];
-  stats: { added: number; verified: number; pruned: number };
+  stats: { added: number; verified: number; updated?: number; pruned: number };
 }> {
   const res = await fetch('/api/scan', {
     method: 'POST',

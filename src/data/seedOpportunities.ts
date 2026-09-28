@@ -490,7 +490,7 @@ export const SEED_OPPORTUNITIES: Opportunity[] = [
     eligibility: 'Open to student and professional developers globally (18+).',
     indian_eligibility: 'Eligible',
     geography: 'Global / 100% Online on Kaggle',
-    stipend: '$100,000+ in cash prizes and Google Cloud compute credits',
+    stipend: '$35,000 USD cash prize pool',
     stipend_type: 'Prizes / Hardware',
     deadline: '2026-11-25',
     timeline: 'Paper Submission: Nov 12, 2026 | Entry & Merger Deadline: Nov 25, 2026 | Final Submission: Dec 2, 2026',

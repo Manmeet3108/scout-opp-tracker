@@ -1,5 +1,6 @@
 import fs from 'fs';
 import path from 'path';
+import { createClient, SupabaseClient } from '@supabase/supabase-js';
 import { Opportunity, OpportunityInput, ScanLog } from '../src/types/opportunity';
 import { SEED_OPPORTUNITIES } from '../src/data/seedOpportunities';
 
@@ -7,30 +8,100 @@ const DATA_DIR = path.resolve(process.cwd(), 'data');
 const OPPS_FILE = path.join(DATA_DIR, 'opportunities.json');
 const LOGS_FILE = path.join(DATA_DIR, 'scan_logs.json');
 
+let supabaseInstance: SupabaseClient | null = null;
+
+export function getSupabaseClient(): SupabaseClient | null {
+  if (supabaseInstance) return supabaseInstance;
+  const supabaseUrl = process.env.SUPABASE_URL;
+  const supabaseKey =
+    process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_ANON_KEY;
+  if (supabaseUrl && supabaseKey) {
+    supabaseInstance = createClient(supabaseUrl, supabaseKey);
+    return supabaseInstance;
+  }
+  return null;
+}
+
 function ensureDataDir() {
   if (!fs.existsSync(DATA_DIR)) {
     fs.mkdirSync(DATA_DIR, { recursive: true });
   }
 }
 
+/**
+ * Syncs local cache with Supabase on startup if SUPABASE_URL is configured.
+ */
+async function syncFromSupabaseOnStartup() {
+  const supabase = getSupabaseClient();
+  if (!supabase) return;
+
+  try {
+    const { data, error } = await supabase
+      .from('opportunities')
+      .select('*')
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      console.error('Supabase initial fetch error:', error.message);
+      return;
+    }
+
+    if (data && data.length > 0) {
+      ensureDataDir();
+      fs.writeFileSync(OPPS_FILE, JSON.stringify(data, null, 2), 'utf-8');
+      console.log(`Synced ${data.length} opportunities from Supabase.`);
+    } else {
+      // If Supabase table is empty on first connect, seed it with current local opportunities
+      const currentLocal = getAllOpportunities();
+      if (currentLocal.length > 0) {
+        const { error: upsertErr } = await supabase
+          .from('opportunities')
+          .upsert(currentLocal, { onConflict: 'id' });
+        if (!upsertErr) {
+          console.log(`Initialized Supabase table with ${currentLocal.length} opportunities.`);
+        }
+      }
+    }
+  } catch (err) {
+    console.error('Failed to sync from Supabase on startup:', err);
+  }
+}
+
+function upsertOpportunitiesToSupabase(items: Opportunity[]) {
+  const supabase = getSupabaseClient();
+  if (!supabase || items.length === 0) return;
+
+  supabase
+    .from('opportunities')
+    .upsert(items, { onConflict: 'id' })
+    .then(({ error }) => {
+      if (error) {
+        console.error('Supabase upsert error:', error.message);
+      }
+    });
+}
+
+function deleteOpportunityFromSupabase(id: string) {
+  const supabase = getSupabaseClient();
+  if (!supabase) return;
+
+  supabase
+    .from('opportunities')
+    .delete()
+    .eq('id', id)
+    .then(({ error }) => {
+      if (error) {
+        console.error('Supabase delete error:', error.message);
+      }
+    });
+}
+
 export function initDatabase() {
   ensureDataDir();
 
+  // Only create opportunities.json if it doesn't exist yet — NEVER overwrite existing live/edited data with SEED_OPPORTUNITIES
   if (!fs.existsSync(OPPS_FILE)) {
     fs.writeFileSync(OPPS_FILE, JSON.stringify(SEED_OPPORTUNITIES, null, 2), 'utf-8');
-  } else {
-    // Sync built-in seed records (scout-opp-01 .. scout-opp-15) with latest verified official schedules
-    // while preserving any custom opportunities added by the mentor.
-    try {
-      const existing: Opportunity[] = JSON.parse(fs.readFileSync(OPPS_FILE, 'utf-8'));
-      const seedMap = new Map(SEED_OPPORTUNITIES.map((s) => [s.id, s]));
-      const customItems = existing.filter((item) => !seedMap.has(item.id));
-      const merged = [...customItems, ...SEED_OPPORTUNITIES];
-      fs.writeFileSync(OPPS_FILE, JSON.stringify(merged, null, 2), 'utf-8');
-    } catch (err) {
-      console.error('Error syncing seed opportunities, resetting to verified seed:', err);
-      fs.writeFileSync(OPPS_FILE, JSON.stringify(SEED_OPPORTUNITIES, null, 2), 'utf-8');
-    }
   }
 
   if (!fs.existsSync(LOGS_FILE)) {
@@ -51,19 +122,22 @@ export function initDatabase() {
       items_verified: SEED_OPPORTUNITIES.length,
       items_pruned: 0,
       details:
-        'Verified official application timelines and deadlines across all 15 flagship opportunities.',
+        'Verified official application timelines and deadlines across all opportunities.',
     };
     fs.writeFileSync(LOGS_FILE, JSON.stringify([initialLog], null, 2), 'utf-8');
   }
 
   // Run initial deadline status refresh based on current date
   updateDeadlineStatuses();
+
+  // If Supabase is configured, pull latest records from Supabase
+  syncFromSupabaseOnStartup();
 }
 
 export function getAllOpportunities(): Opportunity[] {
   ensureDataDir();
   if (!fs.existsSync(OPPS_FILE)) {
-    initDatabase();
+    fs.writeFileSync(OPPS_FILE, JSON.stringify(SEED_OPPORTUNITIES, null, 2), 'utf-8');
   }
   try {
     const raw = fs.readFileSync(OPPS_FILE, 'utf-8');
@@ -77,6 +151,7 @@ export function getAllOpportunities(): Opportunity[] {
 export function saveAllOpportunities(items: Opportunity[]): void {
   ensureDataDir();
   fs.writeFileSync(OPPS_FILE, JSON.stringify(items, null, 2), 'utf-8');
+  upsertOpportunitiesToSupabase(items);
 }
 
 export function getOpportunityById(id: string): Opportunity | undefined {
@@ -123,6 +198,7 @@ export function deleteOpportunity(id: string): boolean {
   if (filtered.length === items.length) return false;
 
   saveAllOpportunities(filtered);
+  deleteOpportunityFromSupabase(id);
   return true;
 }
 
@@ -205,6 +281,7 @@ export function pruneExpiredOpportunities(daysThreshold: number = 30): {
   const items = getAllOpportunities();
   const now = new Date();
 
+  const prunedIds: string[] = [];
   const active = items.filter((opp) => {
     // Keep flagship recurring annual programs in the tracker so mentors can track their official 2026 cycle dates
     if (opp.id.startsWith('scout-opp-')) return true;
@@ -216,14 +293,18 @@ export function pruneExpiredOpportunities(daysThreshold: number = 30): {
       (deadlineDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)
     );
     if (diffDays < -daysThreshold) {
+      prunedIds.push(opp.id);
       return false;
     }
     return true;
   });
 
-  const prunedCount = items.length - active.length;
+  const prunedCount = prunedIds.length;
   if (prunedCount > 0) {
     saveAllOpportunities(active);
+    for (const id of prunedIds) {
+      deleteOpportunityFromSupabase(id);
+    }
   }
   return { prunedCount };
 }

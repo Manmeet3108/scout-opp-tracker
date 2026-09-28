@@ -47,12 +47,6 @@ export const Header: React.FC<HeaderProps> = ({
             >
               Scanner
             </button>
-            <a
-              href="#categories"
-              className="flex items-center h-full border-b-2 border-transparent text-slate-400 hover:text-white transition-colors whitespace-nowrap"
-            >
-              Categories
-            </a>
           </nav>
         </div>
 
@@ -122,9 +116,6 @@ export const Header: React.FC<HeaderProps> = ({
           <button onClick={onOpenScannerModal} className="text-slate-400 hover:text-white">
             Scanner
           </button>
-          <a href="#categories" className="text-slate-400 hover:text-white">
-            Categories
-          </a>
         </div>
         <span className="text-[11px] text-slate-400">
           {newFoundCount} new found

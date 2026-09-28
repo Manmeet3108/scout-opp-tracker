@@ -177,8 +177,13 @@ app.post('/api/opportunities/parse-text', async (req: Request, res: Response) =>
 // Trigger Opportunity Scan (also syncs existing opportunities from official websites)
 app.post('/api/scan', async (req: Request, res: Response) => {
   try {
-    const { categories, autoAdd } = req.body || {};
-    const result = await runOpportunityScan({ categories, autoAdd });
+    const { categories, autoAdd, targetCount, customQuery } = req.body || {};
+    const result = await runOpportunityScan({
+      categories,
+      autoAdd,
+      targetCount,
+      customQuery,
+    });
     res.json(result);
   } catch (err: any) {
     res.status(500).json({ error: err.message || 'Scan execution failed' });
