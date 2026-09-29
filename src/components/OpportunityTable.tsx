@@ -609,7 +609,7 @@ const ExpandedDetails: React.FC<{
           <div>
             <span className="text-slate-400">Application Deadline:</span>
             <p className="text-slate-200 font-mono">
-              {formattedDate} ({opp.status})
+              {formattedDate} ({getEffectiveStatusLabel(opp)})
             </p>
           </div>
           <div>
@@ -823,6 +823,14 @@ const OrgAvatar: React.FC<{ organizer: string; title: string }> = ({ organizer, 
     </div>
   );
 };
+
+function getEffectiveStatusLabel(opp: Opportunity): string {
+  const days = calculateDaysLeft(opp.deadline);
+  if (days === null) return 'Rolling';
+  if (days < 0) return 'Closed';
+  if (days <= 14) return 'Closing Soon';
+  return 'Open';
+}
 
 function calculateDaysLeft(deadlineStr: string): number | null {
   if (deadlineStr === 'Rolling' || !deadlineStr) return null;

@@ -115,12 +115,28 @@ export default function App() {
         return false;
       }
 
-      // Status
+      // Status (always derive effective status from deadline so past deadlines are never treated as Open)
+      const effectiveStatus: OpportunityStatus = (() => {
+        if (!opp.deadline || opp.deadline.trim().toLowerCase() === 'rolling') {
+          return 'Rolling';
+        }
+        const d = new Date(opp.deadline);
+        if (isNaN(d.getTime())) return opp.status;
+        const diffDays = Math.ceil((d.getTime() - Date.now()) / (1000 * 60 * 60 * 24));
+        if (diffDays < 0) return 'Closed';
+        if (diffDays <= 14) return 'Closing Soon';
+        return 'Open';
+      })();
+
       if (filters.status === 'active_open') {
-        if (opp.status !== 'Open' && opp.status !== 'Rolling') {
+        if (
+          effectiveStatus !== 'Open' &&
+          effectiveStatus !== 'Closing Soon' &&
+          effectiveStatus !== 'Rolling'
+        ) {
           return false;
         }
-      } else if (filters.status !== 'all' && opp.status !== filters.status) {
+      } else if (filters.status !== 'all' && effectiveStatus !== filters.status) {
         return false;
       }
 

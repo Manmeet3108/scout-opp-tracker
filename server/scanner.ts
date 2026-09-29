@@ -12,6 +12,7 @@ import {
   updateDeadlineStatuses,
   pruneExpiredOpportunities,
   addScanLog,
+  computeStatusFromDeadline,
 } from './db';
 
 function getAiClient(): GoogleGenAI | null {
@@ -583,7 +584,10 @@ Respond ONLY with a valid JSON array of ${itemsPerBatch} opportunity objects wit
     }
   }
 
-  const discovered = deduplicated.slice(0, requestedCount);
+  const discovered = deduplicated.slice(0, requestedCount).map((item) => ({
+    ...item,
+    status: computeStatusFromDeadline(item.deadline, item.status as any),
+  }));
   const pruneResult = pruneExpiredOpportunities(15);
 
   let addedCount = 0;

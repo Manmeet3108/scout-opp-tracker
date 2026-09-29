@@ -103,11 +103,11 @@ export const FilterBar: React.FC<FilterBarProps> = ({
                 className="w-full appearance-none rounded-xl border border-slate-800/90 bg-slate-900/60 py-2.5 pl-8 pr-7 text-xs font-medium text-slate-200 hover:border-slate-700 focus:border-indigo-500 focus:outline-none cursor-pointer truncate"
               >
                 <option value="all">Status: All</option>
-                <option value="active_open">Status: Active &amp; Open</option>
-                <option value="Open">Status: Open</option>
-                <option value="Closing Soon">Status: Closing Soon</option>
-                <option value="Rolling">Status: Rolling</option>
-                <option value="Closed">Status: Closed</option>
+                <option value="active_open">Status: Active (Open + Rolling)</option>
+                <option value="Open">Status: Open (Fixed Deadline)</option>
+                <option value="Closing Soon">Status: Closing Soon (≤14d)</option>
+                <option value="Rolling">Status: Rolling (Year-Round)</option>
+                <option value="Closed">Status: Closed (Cycle Ended)</option>
               </select>
               <ChevronDown className="pointer-events-none absolute right-2.5 h-3.5 w-3.5 text-slate-400" />
             </div>

@@ -134,6 +134,26 @@ export function initDatabase() {
   syncFromSupabaseOnStartup();
 }
 
+export function computeStatusFromDeadline(
+  deadline?: string,
+  fallbackStatus?: Opportunity['status']
+): Opportunity['status'] {
+  if (!deadline || deadline.trim().toLowerCase() === 'rolling') {
+    return 'Rolling';
+  }
+  const deadlineDate = new Date(deadline);
+  if (isNaN(deadlineDate.getTime())) {
+    return fallbackStatus || 'Open';
+  }
+  const now = new Date();
+  const diffDays = Math.ceil(
+    (deadlineDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)
+  );
+  if (diffDays < 0) return 'Closed';
+  if (diffDays <= 14) return 'Closing Soon';
+  return 'Open';
+}
+
 export function getAllOpportunities(): Opportunity[] {
   ensureDataDir();
   if (!fs.existsSync(OPPS_FILE)) {
@@ -141,7 +161,11 @@ export function getAllOpportunities(): Opportunity[] {
   }
   try {
     const raw = fs.readFileSync(OPPS_FILE, 'utf-8');
-    return JSON.parse(raw);
+    const parsed: Opportunity[] = JSON.parse(raw);
+    return parsed.map((opp) => ({
+      ...opp,
+      status: computeStatusFromDeadline(opp.deadline, opp.status),
+    }));
   } catch (err) {
     console.error('Error reading opportunities.json:', err);
     return SEED_OPPORTUNITIES;
@@ -150,8 +174,12 @@ export function getAllOpportunities(): Opportunity[] {
 
 export function saveAllOpportunities(items: Opportunity[]): void {
   ensureDataDir();
-  fs.writeFileSync(OPPS_FILE, JSON.stringify(items, null, 2), 'utf-8');
-  upsertOpportunitiesToSupabase(items);
+  const normalized = items.map((opp) => ({
+    ...opp,
+    status: computeStatusFromDeadline(opp.deadline, opp.status),
+  }));
+  fs.writeFileSync(OPPS_FILE, JSON.stringify(normalized, null, 2), 'utf-8');
+  upsertOpportunitiesToSupabase(normalized);
 }
 
 export function getOpportunityById(id: string): Opportunity | undefined {
@@ -163,6 +191,7 @@ export function createOpportunity(input: OpportunityInput): Opportunity {
   const items = getAllOpportunities();
   const newOpp: Opportunity = {
     ...input,
+    status: computeStatusFromDeadline(input.deadline, input.status),
     id: `scout-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
     created_at: new Date().toISOString(),
     last_verified: input.last_verified || new Date().toISOString().split('T')[0],
@@ -181,9 +210,13 @@ export function updateOpportunity(
   const index = items.findIndex((o) => o.id === id);
   if (index === -1) return null;
 
+  const mergedDeadline = input.deadline !== undefined ? input.deadline : items[index].deadline;
+  const mergedStatus = input.status !== undefined ? input.status : items[index].status;
+
   items[index] = {
     ...items[index],
     ...input,
+    status: computeStatusFromDeadline(mergedDeadline, mergedStatus),
     updated_at: new Date().toISOString(),
     last_verified: input.last_verified || new Date().toISOString().split('T')[0],
   };
@@ -217,6 +250,7 @@ export function batchAddOpportunities(newItems: OpportunityInput[]): {
     if (!dup) {
       existing.unshift({
         ...item,
+        status: computeStatusFromDeadline(item.deadline, item.status),
         id: `scout-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
         created_at: new Date().toISOString(),
       });
