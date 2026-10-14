@@ -10,14 +10,62 @@ const LOGS_FILE = path.join(DATA_DIR, 'scan_logs.json');
 
 let supabaseInstance: SupabaseClient | null = null;
 
+export function normalizeSupabaseUrl(rawUrl?: string): string | null {
+  if (!rawUrl) return null;
+  let url = rawUrl.trim().replace(/^["']|["']$/g, '');
+
+  // If user accidentally pasted the Supabase Dashboard URL: https://supabase.com/dashboard/project/abcdefghijklmnop
+  const dashMatch = url.match(/supabase\.com\/dashboard\/project\/([a-z0-9_-]+)/i);
+  if (dashMatch) {
+    return `https://${dashMatch[1]}.supabase.co`;
+  }
+
+  // If user accidentally pasted a postgres connection string: postgresql://postgres.abcdef:...
+  const pgMatch = url.match(/postgres(?:ql)?:\/\/postgres\.([a-z0-9_-]+):/i);
+  if (pgMatch) {
+    return `https://${pgMatch[1]}.supabase.co`;
+  }
+
+  // Strip /rest/v1 or trailing slashes if present
+  url = url.replace(/\/rest\/v1\/?$/i, '');
+  url = url.replace(/\/+$/, '');
+
+  if (!/^https?:\/\//i.test(url)) {
+    url = `https://${url}`;
+  }
+
+  return url;
+}
+
+export function normalizeSupabaseKey(rawKey?: string): string | null {
+  if (!rawKey) return null;
+  return rawKey.trim().replace(/^["']|["']$/g, '');
+}
+
 export function getSupabaseClient(): SupabaseClient | null {
   if (supabaseInstance) return supabaseInstance;
-  const supabaseUrl = process.env.SUPABASE_URL;
-  const supabaseKey =
-    process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_ANON_KEY;
+  const rawUrl = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const rawKey =
+    process.env.SUPABASE_SERVICE_ROLE_KEY ||
+    process.env.SUPABASE_ANON_KEY ||
+    process.env.SUPABASE_KEY;
+
+  const supabaseUrl = normalizeSupabaseUrl(rawUrl);
+  const supabaseKey = normalizeSupabaseKey(rawKey);
+
   if (supabaseUrl && supabaseKey) {
-    supabaseInstance = createClient(supabaseUrl, supabaseKey);
-    return supabaseInstance;
+    try {
+      supabaseInstance = createClient(supabaseUrl, supabaseKey, {
+        auth: {
+          persistSession: false,
+          autoRefreshToken: false,
+        },
+      });
+      return supabaseInstance;
+    } catch (err: any) {
+      console.error('Failed to initialize Supabase client:', err.message);
+      return null;
+    }
   }
   return null;
 }
@@ -43,6 +91,9 @@ async function syncFromSupabaseOnStartup() {
 
     if (error) {
       console.error('Supabase initial fetch error:', error.message);
+      console.warn(
+        'Tip: Check that SUPABASE_URL in Render is strictly "https://<project-ref>.supabase.co" (not the dashboard URL or database connection string).'
+      );
       return;
     }
 
@@ -77,6 +128,14 @@ function upsertOpportunitiesToSupabase(items: Opportunity[]) {
     .then(({ error }) => {
       if (error) {
         console.error('Supabase upsert error:', error.message);
+        if (
+          error.message.includes('row-level security') ||
+          (error as any).code === '42501'
+        ) {
+          console.warn(
+            '[Supabase Warning] Row-Level Security (RLS) blocked the upsert. Either add SUPABASE_SERVICE_ROLE_KEY in Render Environment, or run "ALTER TABLE opportunities DISABLE ROW LEVEL SECURITY;" in Supabase SQL Editor.'
+          );
+        }
       }
     });
 }

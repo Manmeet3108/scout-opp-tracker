@@ -224,19 +224,70 @@ app.post('/api/opportunities/prune', (req: Request, res: Response) => {
 // -------------------------------------------------------------
 // NIGHTLY SCAN, DISCOVERY & OFFICIAL WEBSITE SYNC SCHEDULER
 // -------------------------------------------------------------
-// Run every 24 hours (86,400,000 ms) in background
 const TWENTY_FOUR_HOURS = 24 * 60 * 60 * 1000;
-setInterval(async () => {
-  console.log('[Scout Scheduler] Running nightly discovery scan & official website sync...');
+let isScanRunning = false;
+
+export async function checkAndRunScheduledScan(force = false): Promise<any> {
+  if (isScanRunning) {
+    console.log('[Scout Scheduler] Scan already in progress, skipping duplicate run.');
+    return { status: 'skipped', reason: 'already_running' };
+  }
+
+  const logs = getScanLogs();
+  const lastLog = logs[0];
+  const lastScanTime = lastLog ? new Date(lastLog.timestamp).getTime() : 0;
+  const timeSinceLastScan = Date.now() - lastScanTime;
+
+  if (!force && lastScanTime > 0 && timeSinceLastScan < TWENTY_FOUR_HOURS) {
+    const hoursLeft = ((TWENTY_FOUR_HOURS - timeSinceLastScan) / (1000 * 60 * 60)).toFixed(1);
+    console.log(`[Scout Scheduler] Last scan was ${((timeSinceLastScan) / (1000 * 60 * 60)).toFixed(1)}h ago. Next scheduled scan in ~${hoursLeft}h.`);
+    return { status: 'idle', hoursUntilNextScan: hoursLeft };
+  }
+
+  isScanRunning = true;
+  console.log('[Scout Scheduler] Triggering automatic discovery scan & official site verification...');
   try {
     const scanResult = await runOpportunityScan({ autoAdd: true });
     console.log(
-      `[Scout Scheduler] Nightly complete. Verified: ${scanResult.stats.verified} (${scanResult.stats.updated} updated), New Added: ${scanResult.stats.added}, Pruned: ${scanResult.stats.pruned}`
+      `[Scout Scheduler] Scan complete. Verified: ${scanResult.stats.verified} (${scanResult.stats.updated} updated), New Added: ${scanResult.stats.added}, Pruned: ${scanResult.stats.pruned}`
     );
-  } catch (err) {
-    console.error('[Scout Scheduler] Error in nightly maintenance:', err);
+    return { status: 'completed', result: scanResult };
+  } catch (err: any) {
+    console.error('[Scout Scheduler] Error in scheduled maintenance scan:', err);
+    return { status: 'error', error: err.message };
+  } finally {
+    isScanRunning = false;
   }
-}, TWENTY_FOUR_HOURS);
+}
+
+// Check on startup after 10 seconds (in case service woke up after >24h of idle time)
+setTimeout(() => {
+  checkAndRunScheduledScan();
+}, 10000);
+
+// Hourly tick to verify if 24 hours have elapsed since the last scan
+const ONE_HOUR = 60 * 60 * 1000;
+setInterval(() => {
+  checkAndRunScheduledScan();
+}, ONE_HOUR);
+
+// Dedicated Webhook / External Cron Endpoint
+// Can be called by Render Cron Job, GitHub Actions, cron-job.org, or UptimeRobot
+app.all(['/api/cron/scan', '/api/cron/daily'], async (req: Request, res: Response) => {
+  const secret = process.env.CRON_SECRET;
+  const provided = req.headers['x-cron-secret'] || req.query.secret;
+
+  if (secret && provided !== secret) {
+    return res.status(401).json({ error: 'Unauthorized: Invalid CRON_SECRET' });
+  }
+
+  const force = req.query.force === 'true';
+  const outcome = await checkAndRunScheduledScan(force);
+  res.json({
+    message: 'Scout scheduled scan check triggered',
+    ...outcome,
+  });
+});
 
 // -------------------------------------------------------------
 // FRONTEND SERVING (DEV vs PRODUCTION)
