@@ -12,7 +12,10 @@ import {
   batchAddOpportunities, 
   pruneExpiredOpportunities, 
   updateDeadlineStatuses, 
-  getScanLogs 
+  getScanLogs,
+  getIrrelevantOpportunities,
+  markOpportunityAsIrrelevant,
+  unmarkIrrelevantOpportunity
 } from './server/db';
 import { runOpportunityScan, parseOpportunityWithGemini, syncExistingOpportunitiesFromOfficialSites } from './server/scanner';
 
@@ -157,6 +160,45 @@ app.post('/api/opportunities/batch', (req: Request, res: Response) => {
     res.json(result);
   } catch (err: any) {
     res.status(500).json({ error: err.message || 'Failed to batch add opportunities' });
+  }
+});
+
+// Irrelevant / Dismissed opportunities (Blacklist to hide from dashboard & future scans)
+app.get('/api/irrelevant', (req: Request, res: Response) => {
+  try {
+    const list = getIrrelevantOpportunities();
+    res.json(list);
+  } catch (err: any) {
+    res.status(500).json({ error: err.message || 'Failed to fetch irrelevant opportunities' });
+  }
+});
+
+app.post('/api/irrelevant', (req: Request, res: Response) => {
+  try {
+    const { title, organizer, category, application_url, id, reason } = req.body || {};
+    if (!title) {
+      return res.status(400).json({ error: 'Opportunity title is required' });
+    }
+    const record = markOpportunityAsIrrelevant(
+      { id, title, organizer, category, application_url },
+      reason || 'Marked irrelevant by user'
+    );
+    res.json({
+      success: true,
+      record,
+      message: 'Marked as irrelevant. It will not appear in future scans or on the dashboard.',
+    });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message || 'Failed to mark opportunity as irrelevant' });
+  }
+});
+
+app.delete('/api/irrelevant/:id', (req: Request, res: Response) => {
+  try {
+    const success = unmarkIrrelevantOpportunity(req.params.id);
+    res.json({ success, message: success ? 'Removed from irrelevant list' : 'Item not found' });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message || 'Failed to unmark irrelevant opportunity' });
   }
 });
 

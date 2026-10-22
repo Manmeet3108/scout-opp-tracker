@@ -15,6 +15,7 @@ import {
   Bookmark,
   List,
   LayoutGrid,
+  EyeOff,
 } from 'lucide-react';
 import { Opportunity, OpportunityCategory } from '../types/opportunity';
 import { formatCategoryLabel } from '../utils/exportExcel';
@@ -24,6 +25,7 @@ interface OpportunityTableProps {
   onEdit: (opp: Opportunity) => void;
   onDelete: (id: string, title: string) => void;
   onShare: (opp: Opportunity) => void;
+  onMarkIrrelevant?: (opp: Opportunity) => void;
   isLoading?: boolean;
 }
 
@@ -32,6 +34,7 @@ export const OpportunityTable: React.FC<OpportunityTableProps> = ({
   onEdit,
   onDelete,
   onShare,
+  onMarkIrrelevant,
   isLoading = false,
 }) => {
   const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
@@ -339,6 +342,7 @@ export const OpportunityTable: React.FC<OpportunityTableProps> = ({
                         onShare={onShare}
                         onEdit={onEdit}
                         onDelete={onDelete}
+                        onMarkIrrelevant={onMarkIrrelevant}
                       />
                     </div>
                   )}
@@ -531,6 +535,7 @@ export const OpportunityTable: React.FC<OpportunityTableProps> = ({
                               onShare={onShare}
                               onEdit={onEdit}
                               onDelete={onDelete}
+                              onMarkIrrelevant={onMarkIrrelevant}
                             />
                           </td>
                         </tr>
@@ -554,7 +559,8 @@ const ExpandedDetails: React.FC<{
   onShare: (opp: Opportunity) => void;
   onEdit: (opp: Opportunity) => void;
   onDelete: (id: string, title: string) => void;
-}> = ({ opp, formattedDate, onShare, onEdit, onDelete }) => (
+  onMarkIrrelevant?: (opp: Opportunity) => void;
+}> = ({ opp, formattedDate, onShare, onEdit, onDelete, onMarkIrrelevant }) => (
   <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-xs">
     {/* Block 1: Program Scope & Eligibility */}
     <div className="flex flex-col gap-3">
@@ -678,10 +684,20 @@ const ExpandedDetails: React.FC<{
           <Edit3 className="h-3.5 w-3.5" />
           <span>Edit</span>
         </button>
+        {onMarkIrrelevant && (
+          <button
+            onClick={() => onMarkIrrelevant(opp)}
+            className="inline-flex items-center gap-1 rounded-lg border border-rose-950/70 bg-rose-950/20 px-2.5 py-2 text-xs text-rose-300 hover:bg-rose-950/50 hover:border-rose-900/60 transition"
+            title="Mark as non-relevant: removes from dashboard and excludes from future discovery scans"
+          >
+            <EyeOff className="h-3.5 w-3.5 text-rose-400" />
+            <span>Not Relevant</span>
+          </button>
+        )}
         <button
           onClick={() => onDelete(opp.id, opp.title)}
           className="inline-flex items-center gap-1 rounded-lg border border-rose-900/50 bg-rose-950/30 px-2.5 py-2 text-xs text-rose-300 hover:bg-rose-900/40 transition"
-          title="Delete opportunity"
+          title="Delete opportunity permanently"
         >
           <Trash2 className="h-3.5 w-3.5" />
         </button>

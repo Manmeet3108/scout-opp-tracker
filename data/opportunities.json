@@ -19,7 +19,7 @@
     "mentor_notes": "Ideal for student teams turning hackathon prototypes into funded open-source projects.",
     "target_persona": "Hackathon teams, AI builders, and Web3 developers.",
     "status": "Rolling",
-    "last_verified": "2026-10-14",
+    "last_verified": "2026-10-21",
     "source": "Official Site Synced (dorahacks.io)",
     "id": "scout-1791965154535-ycj7a",
     "created_at": "2026-10-14T08:05:54.535Z"
@@ -43,8 +43,8 @@
     "competitiveness": "Medium",
     "mentor_notes": "Live-scraped active hackathon from Devpost (195 participants). Great for building rapid portfolio projects.",
     "target_persona": "Undergraduate full-stack, AI/ML, and product builders.",
-    "status": "Closing Soon",
-    "last_verified": "2026-10-14",
+    "status": "Closed",
+    "last_verified": "2026-10-21",
     "source": "Official Site Synced (indux-5-0-2026.devpost.com)",
     "id": "scout-1791965154535-zaxw5",
     "created_at": "2026-10-14T08:05:54.535Z"
@@ -68,8 +68,8 @@
     "competitiveness": "Medium",
     "mentor_notes": "Live-scraped active hackathon from Devpost (250 participants). Great for building rapid portfolio projects.",
     "target_persona": "Undergraduate full-stack, AI/ML, and product builders.",
-    "status": "Closing Soon",
-    "last_verified": "2026-10-14",
+    "status": "Closed",
+    "last_verified": "2026-10-21",
     "source": "Official Site Synced (hack47-offgrid.devpost.com)",
     "id": "scout-1791965154535-w9an9",
     "created_at": "2026-10-14T08:05:54.535Z"
@@ -93,8 +93,8 @@
     "competitiveness": "Medium",
     "mentor_notes": "Live-scraped active hackathon from Devpost (269 participants). Great for building rapid portfolio projects.",
     "target_persona": "Undergraduate full-stack, AI/ML, and product builders.",
-    "status": "Closing Soon",
-    "last_verified": "2026-10-14",
+    "status": "Closed",
+    "last_verified": "2026-10-21",
     "source": "Official Site Synced (codesprint-by-elitecoders.devpost.com)",
     "id": "scout-1791965154535-yz3jl",
     "created_at": "2026-10-14T08:05:54.535Z"
@@ -119,7 +119,7 @@
     "mentor_notes": "Live-scraped active hackathon from Devpost (322 participants). Great for building rapid portfolio projects.",
     "target_persona": "Undergraduate full-stack, AI/ML, and product builders.",
     "status": "Open",
-    "last_verified": "2026-10-14",
+    "last_verified": "2026-10-21",
     "source": "Official Site Synced (syntax-summit.devpost.com)",
     "id": "scout-1791965154535-shpku",
     "created_at": "2026-10-14T08:05:54.535Z"
@@ -144,7 +144,7 @@
     "mentor_notes": "Live-scraped active hackathon from Devpost (335 participants). Great for building rapid portfolio projects.",
     "target_persona": "Undergraduate full-stack, AI/ML, and product builders.",
     "status": "Closing Soon",
-    "last_verified": "2026-10-14",
+    "last_verified": "2026-10-21",
     "source": "Official Site Synced (next-gen-hackathon.devpost.com)",
     "id": "scout-1791965154535-kt1yp",
     "created_at": "2026-10-14T08:05:54.535Z"
@@ -168,8 +168,8 @@
     "competitiveness": "Medium",
     "mentor_notes": "Live-scraped active hackathon from Devpost (449 participants). Great for building rapid portfolio projects.",
     "target_persona": "Undergraduate full-stack, AI/ML, and product builders.",
-    "status": "Closing Soon",
-    "last_verified": "2026-10-14",
+    "status": "Closed",
+    "last_verified": "2026-10-21",
     "source": "Official Site Synced (eurekadev.devpost.com)",
     "id": "scout-1791965154535-wdnxr",
     "created_at": "2026-10-14T08:05:54.535Z"
@@ -194,7 +194,7 @@
     "mentor_notes": "Live-scraped active hackathon from Devpost (474 participants). Great for building rapid portfolio projects.",
     "target_persona": "Undergraduate full-stack, AI/ML, and product builders.",
     "status": "Rolling",
-    "last_verified": "2026-10-14",
+    "last_verified": "2026-10-21",
     "source": "Official Site Synced (hyperbloom-october.devpost.com)",
     "id": "scout-1791965154535-id4dx",
     "created_at": "2026-10-14T08:05:54.535Z"
@@ -219,7 +219,7 @@
     "mentor_notes": "Live-scraped active hackathon from Devpost (486 participants). Great for building rapid portfolio projects.",
     "target_persona": "Undergraduate full-stack, AI/ML, and product builders.",
     "status": "Open",
-    "last_verified": "2026-10-14",
+    "last_verified": "2026-10-21",
     "source": "Official Site Synced (dsh-hacks-v2.devpost.com)",
     "id": "scout-1791965154535-7t53w",
     "created_at": "2026-10-14T08:05:54.535Z"
@@ -245,7 +245,7 @@
     "mentor_notes": "GSoC 2026 contributor applications ran March 16 – March 31, 2026. Have mentees begin contributing to target org repositories between November and February ahead of the next March application window.",
     "target_persona": "Pre-final & final year CS undergrads with solid Git fundamentals and enthusiasm for Linux/C++/Python/Rust.",
     "status": "Closed",
-    "last_verified": "2026-10-14",
+    "last_verified": "2026-10-21",
     "source": "Official Site Synced (summerofcode.withgoogle.com)",
     "created_at": "2026-09-01T08:00:00Z"
   },
@@ -270,7 +270,7 @@
     "mentor_notes": "The Fall 2026 batch deadline was August 31, 2026 (program runs Sept 14 – Dec 4, 2026). Applications submitted now are evaluated on a rolling basis for the Spring 2027 cohort (Jan–Apr 2027).",
     "target_persona": "Undergrads seeking tier-1 engineering experience without US visa constraints.",
     "status": "Closed",
-    "last_verified": "2026-10-14",
+    "last_verified": "2026-10-21",
     "source": "Official Site Synced (fellowship.mlh.io)",
     "created_at": "2026-09-02T10:30:00Z"
   },
@@ -295,7 +295,7 @@
     "mentor_notes": "2026 Fall Term mentee applications ran August 3 – August 18, 2026 (mentorship runs Sept 7 – Nov 27, 2026). Next term (Spring 2027) opens for mentee applications in February.",
     "target_persona": "Backend, DevOps, and systems programmers interested in Kubernetes, WebAssembly, and distributed systems.",
     "status": "Closed",
-    "last_verified": "2026-10-14",
+    "last_verified": "2026-10-21",
     "source": "Official Site Synced (mentorship.lfx.linuxfoundation.org)",
     "created_at": "2026-09-03T11:00:00Z"
   },
@@ -320,7 +320,7 @@
     "mentor_notes": "Genuinely rolling year-round. Tyler Cowen and Shruti Rajagopalan (EV India) look for high agency, unusual autodidacts, and rapid prototype velocity.",
     "target_persona": "High-agency student builders working on hardware, novel AI architectures, public goods, or deep tech.",
     "status": "Rolling",
-    "last_verified": "2026-10-14",
+    "last_verified": "2026-10-21",
     "source": "Official Site Synced (mercatus.org)",
     "created_at": "2026-08-15T09:00:00Z"
   },
@@ -345,7 +345,7 @@
     "mentor_notes": "The 2026 application window ran July 1 – July 31, 2026. Ensure 1st and 2nd year mentees activate their GitHub Student Developer Pack now so they satisfy the 6-month account tenure requirement.",
     "target_persona": "Student community organizers, hackathon leads, and open source club presidents.",
     "status": "Closed",
-    "last_verified": "2026-10-14",
+    "last_verified": "2026-10-21",
     "source": "Official Site Synced (githubcampus.expert)",
     "created_at": "2026-09-04T14:20:00Z"
   },
@@ -370,7 +370,7 @@
     "mentor_notes": "Open year-round on a rolling basis. Great foundational credential for 1st and 2nd year engineering students to gain cloud credits and workshop hosting experience.",
     "target_persona": "1st & 2nd year undergraduate engineering students building their developer advocacy profile.",
     "status": "Rolling",
-    "last_verified": "2026-10-14",
+    "last_verified": "2026-10-21",
     "source": "Official Site Synced (studentambassadors.microsoft.com)",
     "created_at": "2026-08-20T12:00:00Z"
   },
@@ -386,7 +386,7 @@
     "geography": "Global / 100% Remote",
     "stipend": "$7,000 USD total internship stipend",
     "stipend_type": "Paid / Stipend",
-    "deadline": "2026-08-31",
+    "deadline": "2026-03-07",
     "timeline": "Initial Applications: Aug 24 – Aug 31, 2026 | Contribution Period: Oct 5 – Nov 2, 2026 | Final Application Due: Nov 2, 2026 | Internships: Dec 7, 2026 – Mar 8, 2027",
     "duration": "13 weeks full-time (Dec 7, 2026 – Mar 8, 2027)",
     "application_url": "https://www.outreachy.org",
@@ -395,7 +395,7 @@
     "mentor_notes": "Per outreachy.org: Initial applications for the Dec 2026 – Mar 2027 cohort opened Aug 24, 2026 and closed Aug 31, 2026. The contribution phase runs Oct 5 – Nov 2, 2026 (final applications due Nov 2, 2026). The May–Aug cohort opens in February.",
     "target_persona": "Underrepresented students in tech looking for a structured, mentored paid entry point into open source.",
     "status": "Closed",
-    "last_verified": "2026-10-14",
+    "last_verified": "2026-10-21",
     "source": "Official Site Synced (outreachy.org)",
     "created_at": "2026-09-05T15:00:00Z"
   },
@@ -470,7 +470,7 @@
     "mentor_notes": "Genuinely rolling year-round (~20–30 fellows selected per year). Best suited for student founders who already have working deep-tech prototypes or rapid user growth.",
     "target_persona": "High-velocity student founders, hardware hackers, and independent researchers.",
     "status": "Rolling",
-    "last_verified": "2026-10-14",
+    "last_verified": "2026-10-21",
     "source": "Official Site Synced (thielfellowship.org)",
     "created_at": "2026-08-10T12:00:00Z"
   },
@@ -494,8 +494,8 @@
     "competitiveness": "Medium",
     "mentor_notes": "ETHGlobal Mumbai runs November 5–7, 2026 right in India—ideal opportunity for Indian engineering students to compete in person.",
     "target_persona": "Solidity/Rust/TypeScript developers, cryptography enthusiasts, and full-stack hackathon builders.",
-    "status": "Open",
-    "last_verified": "2026-10-14",
+    "status": "Closing Soon",
+    "last_verified": "2026-10-21",
     "source": "Official Site Synced (ethglobal.com)",
     "created_at": "2026-09-08T18:00:00Z"
   },
@@ -519,8 +519,8 @@
     "competitiveness": "High",
     "mentor_notes": "Per matsprogram.org: The main Winter 2027 cohort application closed September 6, 2026 (late applications via email), while the MATS Residency Winter 2027 window is open August 25 – October 31, 2026.",
     "target_persona": "Advanced ML undergraduates, master’s students, and independent AI safety researchers.",
-    "status": "Open",
-    "last_verified": "2026-10-14",
+    "status": "Closing Soon",
+    "last_verified": "2026-10-21",
     "source": "Official Site Synced (matsprogram.org)",
     "created_at": "2026-09-09T09:00:00Z"
   },
@@ -595,7 +595,7 @@
     "mentor_notes": "Per aws.amazon.com: The 2026 application window closed January 21, 2026. Mentees should join the official waitlist on the AWS page now and publish 2–3 AWS technical articles ahead of the January 2027 opening.",
     "target_persona": "Undergrads who build on AWS and enjoy writing technical tutorials or speaking at meetups.",
     "status": "Closed",
-    "last_verified": "2026-10-14",
+    "last_verified": "2026-10-21",
     "source": "Official Site Synced (aws.amazon.com)",
     "created_at": "2026-09-12T14:30:00Z"
   },
@@ -619,8 +619,8 @@
     "competitiveness": "High",
     "mentor_notes": "Per Kaggle official schedule: Entry and team merger deadline is October 15, 2026, and final model submissions close October 22, 2026.",
     "target_persona": "Computer vision and healthcare AI students.",
-    "status": "Closing Soon",
-    "last_verified": "2026-10-14",
+    "status": "Closed",
+    "last_verified": "2026-10-21",
     "source": "Official Site Synced (kaggle.com)",
     "created_at": "2026-09-15T10:00:00Z"
   },
@@ -645,7 +645,7 @@
     "mentor_notes": "Per Kaggle official schedule: Optional paper deadline is November 12, 2026; team entry/merger closes November 25, 2026; final submissions close December 2, 2026.",
     "target_persona": "Undergraduate AI/ML builders working with open-weights LLMs and agentic workflows.",
     "status": "Open",
-    "last_verified": "2026-10-14",
+    "last_verified": "2026-10-21",
     "source": "Official Site Synced (kaggle.com)",
     "created_at": "2026-09-16T11:00:00Z"
   }

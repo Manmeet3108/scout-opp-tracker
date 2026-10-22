@@ -11,9 +11,20 @@ import {
   ShieldCheck,
   Search,
   ExternalLink,
+  EyeOff,
+  Ban,
+  RotateCcw,
 } from 'lucide-react';
-import { OpportunityInput, ScanLog, OpportunityCategory } from '../types/opportunity';
-import { triggerScanApi, fetchScanLogsApi, pruneExpiredApi, createOpportunityApi } from '../utils/api';
+import { OpportunityInput, ScanLog, OpportunityCategory, IrrelevantOpportunity } from '../types/opportunity';
+import {
+  triggerScanApi,
+  fetchScanLogsApi,
+  pruneExpiredApi,
+  createOpportunityApi,
+  fetchIrrelevantOpportunitiesApi,
+  markOpportunityAsIrrelevantApi,
+  unmarkIrrelevantOpportunityApi,
+} from '../utils/api';
 import { formatCategoryLabel } from '../utils/exportExcel';
 
 interface ScannerModalProps {
@@ -53,16 +64,30 @@ export const ScannerModal: React.FC<ScannerModalProps> = ({
   const [scanMessage, setScanMessage] = useState<string | null>(null);
   const [isPruning, setIsPruning] = useState(false);
   const [pruneResult, setPruneResult] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<'scanner' | 'history'>('scanner');
+  const [activeTab, setActiveTab] = useState<'scanner' | 'history' | 'irrelevant'>('scanner');
   const [addedTitles, setAddedTitles] = useState<Set<string>>(new Set());
+  const [irrelevantTitles, setIrrelevantTitles] = useState<Set<string>>(new Set());
+  const [irrelevantList, setIrrelevantList] = useState<IrrelevantOpportunity[]>([]);
+  const [irrelevantSearch, setIrrelevantSearch] = useState<string>('');
 
   useEffect(() => {
     if (isOpen) {
       loadLogs();
+      loadIrrelevantList();
       setScanMessage(null);
       setPruneResult(null);
     }
   }, [isOpen]);
+
+  const loadIrrelevantList = async () => {
+    try {
+      const data = await fetchIrrelevantOpportunitiesApi();
+      setIrrelevantList(data);
+      setIrrelevantTitles(new Set(data.map((i) => i.title)));
+    } catch (err) {
+      console.error('Failed to load irrelevant list:', err);
+    }
+  };
 
   const loadLogs = async () => {
     try {
@@ -160,9 +185,45 @@ export const ScannerModal: React.FC<ScannerModalProps> = ({
 
   const handleAddAll = async () => {
     for (const item of discoveredItems) {
-      if (!addedTitles.has(item.title || '')) {
+      if (!addedTitles.has(item.title || '') && !irrelevantTitles.has(item.title || '')) {
         await handleAddDiscovered(item);
       }
+    }
+  };
+
+  const handleMarkIrrelevant = async (item: Partial<OpportunityInput>) => {
+    if (!item.title) return;
+    try {
+      await markOpportunityAsIrrelevantApi({
+        title: item.title,
+        organizer: item.organizer,
+        category: item.category,
+        application_url: item.application_url,
+        reason: 'Marked as non-relevant by user',
+      });
+      setIrrelevantTitles((prev) => new Set(prev).add(item.title!));
+      setScanMessage(
+        `Marked "${item.title}" as non-relevant. It has been excluded from future scans and will not appear on your tracker.`
+      );
+      loadIrrelevantList();
+      onOpportunityAdded();
+    } catch (err: any) {
+      setScanMessage(`Error marking as irrelevant: ${err.message}`);
+    }
+  };
+
+  const handleUnmarkIrrelevant = async (id: string, title: string) => {
+    try {
+      await unmarkIrrelevantOpportunityApi(id);
+      setIrrelevantTitles((prev) => {
+        const next = new Set(prev);
+        next.delete(title);
+        return next;
+      });
+      loadIrrelevantList();
+      setScanMessage(`Restored "${title}". It is no longer excluded.`);
+    } catch (err: any) {
+      setScanMessage(`Error restoring opportunity: ${err.message}`);
     }
   };
 
@@ -216,7 +277,7 @@ export const ScannerModal: React.FC<ScannerModalProps> = ({
           </button>
         </div>
 
-        {/* Tab switch: Scanner vs Scan History */}
+        {/* Tab switch: Scanner vs Scan History vs Irrelevant */}
         <div className="border-b border-slate-800 bg-slate-900/60 px-6 py-2 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <button
@@ -239,6 +300,17 @@ export const ScannerModal: React.FC<ScannerModalProps> = ({
             >
               <History className="h-3.5 w-3.5" />
               <span>Scan Logs ({logs.length})</span>
+            </button>
+            <button
+              onClick={() => setActiveTab('irrelevant')}
+              className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium transition ${
+                activeTab === 'irrelevant'
+                  ? 'bg-rose-950/70 text-rose-300 border border-rose-900/50'
+                  : 'text-slate-400 hover:text-slate-200'
+              }`}
+            >
+              <EyeOff className="h-3.5 w-3.5 text-rose-400" />
+              <span>Dismissed / Irrelevant ({irrelevantList.length})</span>
             </button>
           </div>
 
@@ -427,10 +499,15 @@ export const ScannerModal: React.FC<ScannerModalProps> = ({
                   <div className="space-y-2">
                     {discoveredItems.map((item, idx) => {
                       const isAdded = addedTitles.has(item.title || '');
+                      const isIrrelevant = irrelevantTitles.has(item.title || '');
                       return (
                         <div
                           key={idx}
-                          className="flex items-start justify-between gap-3 rounded-lg border border-slate-800 bg-slate-950 p-3 text-xs"
+                          className={`flex items-start justify-between gap-3 rounded-lg border p-3 text-xs transition ${
+                            isIrrelevant
+                              ? 'border-rose-950/40 bg-slate-950/40 opacity-50'
+                              : 'border-slate-800 bg-slate-950'
+                          }`}
                         >
                           <div className="space-y-1 min-w-0">
                             <div className="flex items-center gap-2">
@@ -462,27 +539,54 @@ export const ScannerModal: React.FC<ScannerModalProps> = ({
                             </div>
                           </div>
 
-                          <button
-                            onClick={() => handleAddDiscovered(item)}
-                            disabled={isAdded}
-                            className={`shrink-0 flex items-center gap-1 rounded-md px-2.5 py-1.5 text-xs font-medium transition ${
-                              isAdded
-                                ? 'bg-slate-800 text-slate-500 cursor-default'
-                                : 'bg-indigo-600 text-white hover:bg-indigo-500'
-                            }`}
-                          >
-                            {isAdded ? (
-                              <>
-                                <CheckCircle2 className="h-3 w-3 text-emerald-400" />
-                                <span>Added</span>
-                              </>
-                            ) : (
-                              <>
-                                <Plus className="h-3 w-3" />
-                                <span>Add to Tracker</span>
-                              </>
-                            )}
-                          </button>
+                          <div className="shrink-0 flex items-center gap-1.5">
+                            <button
+                              onClick={() => handleAddDiscovered(item)}
+                              disabled={isAdded || isIrrelevant}
+                              className={`flex items-center gap-1 rounded-md px-2.5 py-1.5 text-xs font-medium transition ${
+                                isAdded
+                                  ? 'bg-slate-800 text-slate-500 cursor-default'
+                                  : isIrrelevant
+                                  ? 'opacity-40 cursor-not-allowed bg-slate-900 text-slate-600'
+                                  : 'bg-indigo-600 text-white hover:bg-indigo-500'
+                              }`}
+                            >
+                              {isAdded ? (
+                                <>
+                                  <CheckCircle2 className="h-3 w-3 text-emerald-400" />
+                                  <span>Added</span>
+                                </>
+                              ) : (
+                                <>
+                                  <Plus className="h-3 w-3" />
+                                  <span>Add to Tracker</span>
+                                </>
+                              )}
+                            </button>
+
+                            <button
+                              onClick={() => handleMarkIrrelevant(item)}
+                              disabled={isIrrelevant || isAdded}
+                              title="Mark this opportunity as non-relevant so it never turns up in future scans and is hidden from the tracker"
+                              className={`flex items-center gap-1 rounded-md px-2 py-1.5 text-xs font-medium transition ${
+                                isIrrelevant
+                                  ? 'bg-rose-950/50 text-rose-300 border border-rose-900/40 cursor-default'
+                                  : 'border border-slate-800 bg-slate-900/80 text-slate-400 hover:text-rose-300 hover:border-rose-900/50 hover:bg-rose-950/20'
+                              }`}
+                            >
+                              {isIrrelevant ? (
+                                <>
+                                  <Ban className="h-3 w-3" />
+                                  <span>Irrelevant</span>
+                                </>
+                              ) : (
+                                <>
+                                  <EyeOff className="h-3 w-3" />
+                                  <span>Not Relevant</span>
+                                </>
+                              )}
+                            </button>
+                          </div>
                         </div>
                       );
                     })}
@@ -490,7 +594,7 @@ export const ScannerModal: React.FC<ScannerModalProps> = ({
                 </div>
               )}
             </>
-          ) : (
+          ) : activeTab === 'history' ? (
             /* Tab 2: Historical Scan Logs */
             <div className="space-y-3">
               <h4 className="text-xs font-semibold text-slate-300">
@@ -525,6 +629,83 @@ export const ScannerModal: React.FC<ScannerModalProps> = ({
                       </div>
                     </div>
                   ))}
+                </div>
+              )}
+            </div>
+          ) : (
+            /* Tab 3: Dismissed / Irrelevant Opportunities */
+            <div className="space-y-4">
+              <div className="flex items-center justify-between gap-3">
+                <div>
+                  <h4 className="text-xs font-semibold text-rose-300 flex items-center gap-1.5">
+                    <EyeOff className="h-3.5 w-3.5" />
+                    <span>Dismissed &amp; Non-Relevant Opportunities ({irrelevantList.length})</span>
+                  </h4>
+                  <p className="text-[11px] text-slate-400 mt-0.5">
+                    These opportunities are permanently hidden from your tracker dashboard and strictly excluded from all future discovery scans.
+                  </p>
+                </div>
+              </div>
+
+              {irrelevantList.length > 0 && (
+                <div className="relative">
+                  <Search className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-slate-500" />
+                  <input
+                    type="text"
+                    value={irrelevantSearch}
+                    onChange={(e) => setIrrelevantSearch(e.target.value)}
+                    placeholder="Search dismissed opportunities..."
+                    className="w-full rounded-lg border border-slate-800 bg-slate-950/70 pl-9 pr-3 py-1.5 text-xs text-white placeholder-slate-500 focus:border-rose-500 focus:outline-none"
+                  />
+                </div>
+              )}
+
+              {irrelevantList.length === 0 ? (
+                <div className="rounded-xl border border-slate-800/80 bg-slate-950/40 p-8 text-center">
+                  <EyeOff className="h-8 w-8 text-slate-600 mx-auto mb-2" />
+                  <p className="text-xs font-medium text-slate-300">No opportunities marked as irrelevant yet.</p>
+                  <p className="text-[11px] text-slate-500 mt-1 max-w-sm mx-auto">
+                    When the scanner finds opportunities that don't fit your students, click "Not Relevant" to permanently exclude them.
+                  </p>
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  {irrelevantList
+                    .filter((item) =>
+                      !irrelevantSearch ||
+                      item.title.toLowerCase().includes(irrelevantSearch.toLowerCase()) ||
+                      (item.organizer && item.organizer.toLowerCase().includes(irrelevantSearch.toLowerCase()))
+                    )
+                    .map((item) => (
+                      <div
+                        key={item.id}
+                        className="flex items-center justify-between gap-3 rounded-lg border border-slate-800/80 bg-slate-950 p-3 text-xs"
+                      >
+                        <div className="min-w-0 space-y-0.5">
+                          <div className="flex items-center gap-2">
+                            <span className="font-semibold text-slate-200 truncate">{item.title}</span>
+                            {item.category && (
+                              <span className="rounded bg-slate-800 px-1.5 py-0.5 text-[10px] text-slate-400">
+                                {formatCategoryLabel(item.category)}
+                              </span>
+                            )}
+                          </div>
+                          <div className="text-[11px] text-slate-500">
+                            {item.organizer ? `${item.organizer} · ` : ''}Dismissed on {new Date(item.marked_at).toLocaleDateString()}
+                          </div>
+                        </div>
+
+                        <button
+                          type="button"
+                          onClick={() => handleUnmarkIrrelevant(item.id, item.title)}
+                          className="shrink-0 flex items-center gap-1 rounded-md border border-slate-800 bg-slate-900 px-2.5 py-1.5 text-xs text-slate-300 hover:text-white hover:border-slate-700 transition"
+                          title="Restore this opportunity so it can be tracked or discovered again"
+                        >
+                          <RotateCcw className="h-3 w-3 text-indigo-400" />
+                          <span>Restore</span>
+                        </button>
+                      </div>
+                    ))}
                 </div>
               )}
             </div>

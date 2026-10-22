@@ -1,12 +1,13 @@
 import fs from 'fs';
 import path from 'path';
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
-import { Opportunity, OpportunityInput, ScanLog } from '../src/types/opportunity';
+import { Opportunity, OpportunityInput, ScanLog, IrrelevantOpportunity, OpportunityCategory } from '../src/types/opportunity';
 import { SEED_OPPORTUNITIES } from '../src/data/seedOpportunities';
 
 const DATA_DIR = path.resolve(process.cwd(), 'data');
 const OPPS_FILE = path.join(DATA_DIR, 'opportunities.json');
 const LOGS_FILE = path.join(DATA_DIR, 'scan_logs.json');
+const IRRELEVANT_FILE = path.join(DATA_DIR, 'irrelevant_opportunities.json');
 
 let supabaseInstance: SupabaseClient | null = null;
 
@@ -423,3 +424,103 @@ export function addScanLog(log: ScanLog): void {
   const trimmed = logs.slice(0, 50);
   fs.writeFileSync(LOGS_FILE, JSON.stringify(trimmed, null, 2), 'utf-8');
 }
+
+export function getIrrelevantOpportunities(): IrrelevantOpportunity[] {
+  ensureDataDir();
+  if (!fs.existsSync(IRRELEVANT_FILE)) {
+    return [];
+  }
+  try {
+    const raw = fs.readFileSync(IRRELEVANT_FILE, 'utf-8');
+    return JSON.parse(raw);
+  } catch (err) {
+    console.error('Error reading irrelevant_opportunities.json:', err);
+    return [];
+  }
+}
+
+export function saveAllIrrelevantOpportunities(items: IrrelevantOpportunity[]): void {
+  ensureDataDir();
+  fs.writeFileSync(IRRELEVANT_FILE, JSON.stringify(items, null, 2), 'utf-8');
+  syncIrrelevantToSupabase(items);
+}
+
+export function markOpportunityAsIrrelevant(
+  item: {
+    id?: string;
+    title: string;
+    organizer?: string;
+    category?: OpportunityCategory;
+    application_url?: string;
+  },
+  reason: string = 'Marked irrelevant by user'
+): IrrelevantOpportunity {
+  const current = getIrrelevantOpportunities();
+  const normalizedTitle = item.title.trim().toLowerCase();
+
+  // If this opportunity was already on the main dashboard, remove it immediately!
+  const allMain = getAllOpportunities();
+  const found = allMain.find(
+    (o) =>
+      (item.id && o.id === item.id) ||
+      o.title.trim().toLowerCase() === normalizedTitle ||
+      (item.application_url && o.application_url === item.application_url)
+  );
+
+  if (found) {
+    deleteOpportunity(found.id);
+  }
+
+  // Check if already in irrelevant list
+  const existing = current.find(
+    (i) =>
+      i.title.trim().toLowerCase() === normalizedTitle ||
+      (item.application_url && i.application_url === item.application_url)
+  );
+
+  if (existing) {
+    return existing;
+  }
+
+  const record: IrrelevantOpportunity = {
+    id: item.id || `irrelevant-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
+    title: item.title.trim(),
+    organizer: item.organizer,
+    category: item.category,
+    application_url: item.application_url,
+    reason,
+    marked_at: new Date().toISOString(),
+  };
+
+  current.unshift(record);
+  saveAllIrrelevantOpportunities(current);
+  return record;
+}
+
+export function unmarkIrrelevantOpportunity(idOrTitle: string): boolean {
+  const current = getIrrelevantOpportunities();
+  const filtered = current.filter(
+    (i) => i.id !== idOrTitle && i.title.toLowerCase() !== idOrTitle.toLowerCase()
+  );
+  if (filtered.length !== current.length) {
+    saveAllIrrelevantOpportunities(filtered);
+    return true;
+  }
+  return false;
+}
+
+function syncIrrelevantToSupabase(items: IrrelevantOpportunity[]) {
+  const supabase = getSupabaseClient();
+  if (!supabase || items.length === 0) return;
+
+  supabase
+    .from('irrelevant_opportunities')
+    .upsert(items, { onConflict: 'id' })
+    .then(({ error }) => {
+      if (error) {
+        // Table may not exist yet in Supabase which is expected and non-blocking
+        console.warn('Note: Supabase irrelevant_opportunities sync:', error.message);
+      }
+    });
+}
+

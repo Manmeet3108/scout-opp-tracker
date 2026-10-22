@@ -91,3 +91,13 @@ export interface FilterState {
   competitiveness: 'all' | Competitiveness;
   sortBy: 'deadline_asc' | 'deadline_desc' | 'created_desc' | 'stipend_desc' | 'title_asc';
 }
+
+export interface IrrelevantOpportunity {
+  id: string;
+  title: string;
+  organizer?: string;
+  category?: OpportunityCategory;
+  application_url?: string;
+  reason?: string;
+  marked_at: string;
+}

@@ -98,3 +98,38 @@ export async function fetchHealthApi(): Promise<any> {
   if (!res.ok) throw new Error('Failed to check health');
   return res.json();
 }
+
+export async function fetchIrrelevantOpportunitiesApi(): Promise<import('../types/opportunity').IrrelevantOpportunity[]> {
+  const res = await fetch('/api/irrelevant');
+  if (!res.ok) throw new Error('Failed to fetch irrelevant opportunities');
+  return res.json();
+}
+
+export async function markOpportunityAsIrrelevantApi(data: {
+  id?: string;
+  title: string;
+  organizer?: string;
+  category?: import('../types/opportunity').OpportunityCategory;
+  application_url?: string;
+  reason?: string;
+}): Promise<any> {
+  const res = await fetch('/api/irrelevant', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data),
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.error || 'Failed to mark as irrelevant');
+  }
+  return res.json();
+}
+
+export async function unmarkIrrelevantOpportunityApi(id: string): Promise<any> {
+  const res = await fetch(`/api/irrelevant/${encodeURIComponent(id)}`, {
+    method: 'DELETE',
+  });
+  if (!res.ok) throw new Error('Failed to remove from irrelevant list');
+  return res.json();
+}
+

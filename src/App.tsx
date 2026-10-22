@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { Opportunity, OpportunityInput, FilterState, OpportunityCategory, IndianEligibility, StipendType, OpportunityStatus } from './types/opportunity';
-import { fetchOpportunities, createOpportunityApi, updateOpportunityApi, deleteOpportunityApi } from './utils/api';
+import { fetchOpportunities, createOpportunityApi, updateOpportunityApi, deleteOpportunityApi, markOpportunityAsIrrelevantApi } from './utils/api';
 import { exportOpportunitiesToExcel, exportOpportunitiesToCSV } from './utils/exportExcel';
 import { Header } from './components/Header';
 import { StatsBanner } from './components/StatsBanner';
@@ -224,6 +224,29 @@ export default function App() {
     showToast(`Exported ${filteredOpportunities.length} opportunities to CSV!`);
   };
 
+  const handleMarkIrrelevant = async (opp: Opportunity) => {
+    if (
+      !confirm(
+        `Mark "${opp.title}" as non-relevant?\n\nIt will be removed from your dashboard and permanently excluded from all future discovery scans.`
+      )
+    ) {
+      return;
+    }
+    try {
+      await markOpportunityAsIrrelevantApi({
+        id: opp.id,
+        title: opp.title,
+        organizer: opp.organizer,
+        category: opp.category,
+        application_url: opp.application_url,
+      });
+      showToast(`Marked "${opp.title}" as non-relevant and hidden from tracker.`);
+      await loadData();
+    } catch (err: any) {
+      showToast(err.message || 'Failed to mark as non-relevant', 'error');
+    }
+  };
+
   return (
     <div className="min-h-screen bg-[#060913] text-slate-100 font-sans flex flex-col">
       {/* Top Bar Contract (Wordmark — Nav links — Primary actions) */}
@@ -285,6 +308,7 @@ export default function App() {
           }}
           onDelete={handleDeleteOpportunity}
           onShare={(opp) => setSharingItem(opp)}
+          onMarkIrrelevant={handleMarkIrrelevant}
         />
       </main>
 

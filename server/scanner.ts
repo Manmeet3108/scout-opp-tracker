@@ -14,6 +14,7 @@ import {
   getScanLogs,
   addScanLog,
   computeStatusFromDeadline,
+  getIrrelevantOpportunities,
 } from './db';
 
 function getAiClient(): GoogleGenAI | null {
@@ -661,13 +662,20 @@ export async function runOpportunityScan(options?: {
   // STEP 1: Sync all existing opportunities in the tracker against their live official websites
   const syncResult = await syncExistingOpportunitiesFromOfficialSites();
 
-  // Build exclusion sets from BOTH the tracker database AND recent scan logs so consecutive scans never repeat the same results!
+  // Build exclusion sets from tracker DB, marked-irrelevant blacklist, AND recent scan logs
   const existingOpps = getAllOpportunities();
+  const irrelevantOpps = getIrrelevantOpportunities();
   const previousLogs = getScanLogs().slice(0, 6);
   const recentlyShownItems = previousLogs.flatMap((log) => log.discovered_items || []);
 
-  const existingTitleKeys = new Set(existingOpps.map((o) => normalizeTextKey(o.title)));
-  const existingUrlKeys = new Set(existingOpps.map((o) => normalizeUrlKey(o.application_url)));
+  const existingTitleKeys = new Set([
+    ...existingOpps.map((o) => normalizeTextKey(o.title)),
+    ...irrelevantOpps.map((o) => normalizeTextKey(o.title)),
+  ]);
+  const existingUrlKeys = new Set([
+    ...existingOpps.map((o) => normalizeUrlKey(o.application_url)),
+    ...irrelevantOpps.map((o) => normalizeUrlKey(o.application_url)),
+  ]);
 
   const recentlyShownTitleKeys = new Set(
     recentlyShownItems.map((o) => normalizeTextKey(o.title))
@@ -679,43 +687,20 @@ export async function runOpportunityScan(options?: {
   const allExcludedTitles = Array.from(
     new Set([
       ...existingOpps.map((o) => o.title),
+      ...irrelevantOpps.map((o) => o.title),
       ...recentlyShownItems.map((o) => o.title).filter(Boolean),
     ])
-  ).slice(0, 60);
+  ).slice(0, 80);
 
   const scanIteration = previousLogs.length;
   const rotationTheme =
     SEARCH_ROTATION_THEMES[scanIteration % SEARCH_ROTATION_THEMES.length];
 
-  // STEP 2: Discover new real-time opportunities from multiple complementary web feeds
+  // STEP 2: Discover new real-time opportunities across the selected categories
   let rawDiscovered: Partial<OpportunityInput>[] = [];
 
-  // A. Live Devpost Hackathons API (Runs for hackathons & competitions)
-  if (
-    categoriesToScan.includes('hackathon_conference') ||
-    categoriesToScan.includes('competition')
-  ) {
-    const devpostPage = (scanIteration % 5) + 1;
-    const [page1, page2] = await Promise.all([
-      fetchLiveDevpostOpportunities(today, devpostPage, customQuery),
-      fetchLiveDevpostOpportunities(today, devpostPage + 1, customQuery),
-    ]);
-    rawDiscovered.push(...page1, ...page2);
-  }
-
-  // B. Live Open-Source Community Program Registry (Runs for opensource & fellowship)
-  if (
-    categoriesToScan.includes('opensource') ||
-    categoriesToScan.includes('fellowship')
-  ) {
-    const liveOss = await fetchLiveOpenSourcePrograms(today);
-    const offset = (scanIteration * 5) % Math.max(1, liveOss.length);
-    const rotatedOss = [...liveOss.slice(offset), ...liveOss.slice(0, offset)];
-    rawDiscovered.push(...rotatedOss.slice(0, 10));
-  }
-
-  // C. Gemini AI Web Search (Single focused request to avoid 429 rate limits)
-  if (ai && rawDiscovered.length < requestedCount * 2) {
+  // A. Primary: Gemini AI Live Web Search across ALL selected categories
+  if (ai) {
     try {
       const focusInstruction = customQuery
         ? `\nSPECIAL SEARCH FOCUS: Prioritize opportunities matching "${customQuery}".`
@@ -723,6 +708,9 @@ export async function runOpportunityScan(options?: {
 
       const prompt = `You are Scout's real-time web opportunity scanner for Polaris School of Technology mentors. Today's date is ${today}.
 Use Google Search to find ${requestedCount} real, currently active or upcoming (2026–2027) opportunities for undergraduate computer science and engineering students (including Indian students) across ONLY these categories: ${categoriesToScan.join(', ')}.${focusInstruction}
+
+CRITICAL REQUIREMENT — BALANCED CATEGORY COVERAGE:
+Make sure to return opportunities distributed across ALL requested categories (${categoriesToScan.join(', ')}). Do NOT return only hackathons! Ensure you include top fellowships, founder grants, open source mentorships, campus ambassador roles, and competitions!
 
 CRITICAL — DO NOT RETURN ANY OF THESE ALREADY-TRACKED OR RECENTLY-SHOWN PROGRAMS:
 ${allExcludedTitles.join(' | ')}
@@ -756,10 +744,38 @@ Respond ONLY with a valid JSON array of ${requestedCount} opportunity objects wi
     }
   }
 
+  // B. Live Open-Source Community Program Registry (Capped at 2-3 items so it doesn't skew the results)
+  if (
+    categoriesToScan.includes('opensource') ||
+    categoriesToScan.includes('fellowship')
+  ) {
+    const liveOss = await fetchLiveOpenSourcePrograms(today);
+    const offset = (scanIteration * 3) % Math.max(1, liveOss.length);
+    const rotatedOss = [...liveOss.slice(offset), ...liveOss.slice(0, offset)];
+    rawDiscovered.push(...rotatedOss.slice(0, 3));
+  }
+
+  // C. Live Devpost Hackathons API (Strictly capped at at most 2 items to prevent hackathons from dominating)
+  if (
+    categoriesToScan.includes('hackathon_conference') ||
+    categoriesToScan.includes('competition')
+  ) {
+    const devpostPage = (scanIteration % 5) + 1;
+    const liveDevpost = await fetchLiveDevpostOpportunities(today, devpostPage, customQuery);
+    // Take at most 2 live Devpost hackathons per scan to keep a diverse, multi-category portfolio
+    rawDiscovered.push(...liveDevpost.slice(0, 2));
+  }
+
   // Deduplicate against existing database, recent scan history, and within the discovered batch
   const seenBatchTitles = new Set<string>();
   const seenBatchUrls = new Set<string>();
   const deduplicated: Partial<OpportunityInput>[] = [];
+
+  // Group items by category to ensure balanced interleaving across categories
+  const categoryBuckets = new Map<string, Partial<OpportunityInput>[]>();
+  for (const cat of categoriesToScan) {
+    categoryBuckets.set(cat, []);
+  }
 
   for (const item of rawDiscovered) {
     const tKey = normalizeTextKey(item.title);
@@ -771,7 +787,28 @@ Respond ONLY with a valid JSON array of ${requestedCount} opportunity objects wi
 
     seenBatchTitles.add(tKey);
     if (uKey) seenBatchUrls.add(uKey);
-    deduplicated.push(item);
+
+    const cat = item.category || 'fellowship';
+    if (!categoryBuckets.has(cat)) {
+      categoryBuckets.set(cat, []);
+    }
+    categoryBuckets.get(cat)!.push(item);
+  }
+
+  // Interleave round-robin across categories so no single category (e.g. hackathons) monopolizes
+  let hasMore = true;
+  let round = 0;
+  while (hasMore && deduplicated.length < requestedCount) {
+    hasMore = false;
+    for (const cat of categoriesToScan) {
+      const bucket = categoryBuckets.get(cat) || [];
+      if (round < bucket.length) {
+        deduplicated.push(bucket[round]);
+        hasMore = true;
+        if (deduplicated.length >= requestedCount) break;
+      }
+    }
+    round++;
   }
 
   // If still fewer than requestedCount, top up from our expanded verified pool (prioritizing items NOT shown in recent scans, rotated by scanIteration)
